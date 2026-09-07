@@ -12,7 +12,6 @@
 //         headers: {
 //           "Content-Type": "application/json",
 //         //   apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
-//           apikey: "sb_secret_M1QEYKEwWjZaiD9DbqDm7Q_gio3DIGi",
 //         },
 //         body: JSON.stringify(body),
 //       }
@@ -60,7 +59,6 @@
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
-//         //   "apikey": process.env.SECRET_KEYS || "sb_secret_M1QEYKEwWjZaiD9DbqDm7Q_gio3DIGi",
 //           apikey: process.env.SECRET_KEYS!,
 //         },
 //         body: JSON.stringify(body),
