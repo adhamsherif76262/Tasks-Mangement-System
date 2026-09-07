@@ -86,62 +86,62 @@
 
 
 
-import { NextResponse } from "next/server";
+// import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
+// export async function POST(request: Request) {
+//   try {
+//     const body = await request.json();
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    // const apiKey = process.env.SECRET_KEYS;
-    const apiKey = "ss";
+//     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+//     // const apiKey = process.env.SECRET_KEYS;
+//     const apiKey = "ss";
 
-    if (!baseUrl) {
-      console.error("NEXT_PUBLIC_BASE_URL is undefined");
+//     if (!baseUrl) {
+//       console.error("NEXT_PUBLIC_BASE_URL is undefined");
 
-      return NextResponse.json(
-        { message: "Server configuration error: Base URL is missing." },
-        { status: 500 }
-      );
-    }
+//       return NextResponse.json(
+//         { message: "Server configuration error: Base URL is missing." },
+//         { status: 500 }
+//       );
+//     }
 
-    if (!apiKey) {
-      console.error("SECRET_KEYS is undefined");
+//     if (!apiKey) {
+//       console.error("SECRET_KEYS is undefined");
 
-      return NextResponse.json(
-        { message: "Server configuration error: API key is missing." },
-        { status: 500 }
-      );
-    }
+//       return NextResponse.json(
+//         { message: "Server configuration error: API key is missing." },
+//         { status: 500 }
+//       );
+//     }
 
-    const response = await fetch(
-      `${baseUrl}/auth/v1/signup`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-        },
-        body: JSON.stringify(body),
-      }
-    );
+//     const response = await fetch(
+//       `${baseUrl}/auth/v1/signup`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           apikey: apiKey,
+//         },
+//         body: JSON.stringify(body),
+//       }
+//     );
 
-    const data = await response.json();
+//     const data = await response.json();
 
-    return NextResponse.json(data, {
-      status: response.status,
-    });
+//     return NextResponse.json(data, {
+//       status: response.status,
+//     });
 
-  } catch (error) {
-    console.error("Signup API error:", error);
+//   } catch (error) {
+//     console.error("Signup API error:", error);
 
-    return NextResponse.json(
-      {
-        message: "Internal server error",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-}
+//     return NextResponse.json(
+//       {
+//         message: "Internal server error",
+//       },
+//       {
+//         status: 500,
+//       }
+//     );
+//   }
+// }
