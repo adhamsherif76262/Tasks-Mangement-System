@@ -93,7 +93,8 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    const apiKey = process.env.SECRET_KEYS;
+    // const apiKey = process.env.SECRET_KEYS;
+    const apiKey = "ss";
 
     if (!baseUrl) {
       console.error("NEXT_PUBLIC_BASE_URL is undefined");
