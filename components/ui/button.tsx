@@ -12,6 +12,7 @@ interface ButtonProps
 //   size: ButtonSize;
   text: string;
   className?: string;
+  disabled?: boolean;
 }
 // box-shadow: 0px 25px 50px -12px #003D9B4D;
 
@@ -20,6 +21,7 @@ export default function Button({
 //   size = "md",
   text = "Template Button",
   className = "",
+  disabled,
 //   children,
   ...props
 }: ButtonProps) {
@@ -45,10 +47,11 @@ export default function Button({
 
   return (
     <button
-    onClick={() => alert("Button clicked!")}
+    // onClick={() => alert("Button clicked!")}
     //   className={`${baseStyles} ${variants[variant]} ${sizes[size]} rounded-[2px] ${className}`}
     //   className={`${variants[variant]} ${sizes[size]} ${className}`}
       className={`${variants[variant]} ${className}`}
+      disabled={disabled}
       {...props}
     >
       {text}
