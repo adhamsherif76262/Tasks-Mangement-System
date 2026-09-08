@@ -4,112 +4,12 @@
 //   try {
 //     const body = await request.json();
 
-//     const response = await fetch(
-//     //   `${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`,
-//       `https://bflnaoywkzdsarnkktyu.supabase.co/auth/v1/signup`,
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         //   apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
-//         },
-//         body: JSON.stringify(body),
-//       }
-//     );
-
-//     const data = await response.json();
-
-//     return NextResponse.json(data, {
-//       status: response.status,
-//     });
-//   } catch (error) {
-//     console.error("Signup API error:", error);
-
-//     return NextResponse.json(
-//       {
-//         message: "Something went wrong while creating the account.",
-//       },
-//       {
-//         status: 500,
-//       }
-//     );
-//   }
-// }
-
-
-
-
-
-
-
-
-// import { NextResponse } from "next/server";
-
-// export async function POST(request: Request) {
-//   try {
-//     const body = await request.json();
-
-//     console.log("BASE URL:", process.env.NEXT_PUBLIC_BASE_URL);
-//     console.log("API KEY EXISTS:", !!process.env.SECRET_KEYS);
-//     console.log("API KEY:", process.env.SECRET_KEYS);
-
-//     const response = await fetch(
-//       `${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`,
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//           apikey: process.env.SECRET_KEYS!,
-//         },
-//         body: JSON.stringify(body),
-//       }
-//     );
-
-//     const data = await response.json();
-
-//     return NextResponse.json(data, {
-//       status: response.status,
-//     });
-//   } catch (error) {
-//     console.error("Signup API error:", error);
-
-//     return NextResponse.json(
-//       {
-//         message: "Something went wrong while creating the account.",
-//       },
-//       {
-//         status: 500,
-//       }
-//     );
-//   }
-// }
-
-
-
-// import { NextResponse } from "next/server";
-
-// export async function POST(request: Request) {
-//   try {
-//     const body = await request.json();
-
 //     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-//     // const apiKey = process.env.SECRET_KEYS;
-//     const apiKey = "ss";
+//     const apiKey = process.env.NEXT_PUBLIC_SECRET_KEYS;
 
-//     if (!baseUrl) {
-//       console.error("NEXT_PUBLIC_BASE_URL is undefined");
-
+//     if (!baseUrl || !apiKey) {
 //       return NextResponse.json(
-//         { message: "Server configuration error: Base URL is missing." },
-//         { status: 500 }
-//       );
-//     }
-
-//     if (!apiKey) {
-//       console.error("SECRET_KEYS is undefined");
-
-//       return NextResponse.json(
-//         { message: "Server configuration error: API key is missing." },
+//         { message: "Server configuration error." },
 //         { status: 500 }
 //       );
 //     }
@@ -128,16 +28,44 @@
 
 //     const data = await response.json();
 
-//     return NextResponse.json(data, {
-//       status: response.status,
+//     if (!response.ok) {
+//       return NextResponse.json(data, {
+//         status: response.status,
+//       });
+//     }
+
+//     const nextResponse = NextResponse.json(
+//       {
+//         user: data.user,
+//       },
+//       {
+//         status: 200,
+//       }
+//     );
+
+//     nextResponse.cookies.set("access_token", data.access_token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "lax",
+//       path: "/",
+//       maxAge: data.expires_in,
 //     });
+
+//     nextResponse.cookies.set("refresh_token", data.refresh_token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "lax",
+//       path: "/",
+//     });
+
+//     return nextResponse;
 
 //   } catch (error) {
 //     console.error("Signup API error:", error);
 
 //     return NextResponse.json(
 //       {
-//         message: "Internal server error",
+//         message: "Internal server error.",
 //       },
 //       {
 //         status: 500,

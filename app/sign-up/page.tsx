@@ -41,88 +41,6 @@ export default function SignUpPage() {
     /[0-9]/.test(passwordValue);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordValue);
   
-//   const onSubmit = async (data: SignUpFormData) => {
-//     const payload = {
-//       name: data.name,
-//       email: data.email,
-//       password: data.password,
-//       ...(data.jobTitle?.trim()
-//       ? {
-//           jobTitle: data.jobTitle.trim(),
-//         }
-//       : {}),
-//     };
-
-//     console.log("API Payload:", payload);
-
-//     // await fetch("/api/auth/signup", {
-//     //   method: "POST",
-//     //   headers: {
-//     //     "Content-Type": "application/json",
-//     //   },
-//     //   body: JSON.stringify(payload),
-//     // });
-
-//     const response = await fetch(
-//   `${process.env.NEXT_PUBLIC_Base_URL}/auth/v1/signup`,
-//   {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       apikey: process.env.NEXT_PUBLIC_SECRET_KEYS,
-//     },
-//     body: JSON.stringify(payload),
-//   }
-// );
-// console.log(process.env.Base_URL)
-// console.log(response)
-//   };
-
-// const onSubmit = async (data: SignUpFormData) => {
-//   const payload = {
-//     name: data.name,
-//     email: data.email,
-//     password: data.password,
-//     ...(data.jobTitle?.trim()
-//       ? {
-//           jobTitle: data.jobTitle.trim(),
-//         }
-//       : {}),
-//   };
-
-//   console.log("API Payload:", payload);
-//   console.log("Base URL:", process.env.NEXT_PUBLIC_BASE_URL);
-//   console.log("Base URL:",process.env.SECRET_KEYS);
-
-//   try {
-//     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         apikey: process.env.SECRET_KEYS!,
-//       },
-//       body: JSON.stringify(payload),
-//     });
-
-//     const result = await response.json();
-
-//     console.log("Status:", response.status);
-//     console.log("Response:", result);
-
-//     if (!response.ok) {
-//       console.error("Signup failed:", result);
-//       return;
-//     }
-
-//     console.log("Signup successful:", result);
-
-//   } catch (error) {
-//     console.error("Network error:", error);
-//   }
-// };
-  
-
-
 
 const onSubmit = async (data: SignUpFormData) => {
   const payload = {
@@ -136,33 +54,36 @@ const onSubmit = async (data: SignUpFormData) => {
       : {}),
   };
 
-  console.log("API Payload:", payload);
-
+  
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
       },
       body: JSON.stringify(payload),
     });
+    // console.log("API Payload:", payload);
+    // console.log("Base URL:", process.env.NEXT_PUBLIC_BASE_URL);
+    // console.log("API Key:", process.env.NEXT_PUBLIC_SECRET_KEYS);
 
     const result = await response.json();
 
-    console.log("Signup response:", result);
+    // console.log("Status:", response.status);
 
     if (!response.ok) {
       console.error("Signup failed:", result);
       return;
     }
 
-    console.log("Signup successful:", result);
+    // console.log("Signup successful:", result);
+    router.push("/projects");
 
   } catch (error) {
-    console.error("Signup request failed:", error);
+    console.error("Network error:", error);
   }
 };
-
 
   return (
       <section className='w-full bg-surface-low'>
@@ -230,7 +151,7 @@ const onSubmit = async (data: SignUpFormData) => {
 
           </article>
           <article className="text-center mx-auto flex items-center gap-1 justify-center pt-8 max-xxs:pt-12 max-xxs:pb-8">
-            <span className="text-signup-p-headline text-slate-neutral-medium">Already have an account ?</span><span className="text-primary text-primary-button-sm font-semibold" onClick={()=>{router.push("/login")}}>Log in</span>
+            <span className="text-signup-p-headline text-slate-neutral-medium">Already have an account ?</span><span className="text-primary text-primary-button-sm font-semibold hover:cursor-pointer" onClick={()=>{router.push("/login")}}>Log in</span>
           </article>
         </form>
     </section>
