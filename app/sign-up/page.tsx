@@ -10,14 +10,16 @@ import {
 } from "@/schemas/signUpSchema";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/Input";
+import { useState } from "react";
 
 export default function SignUpPage() {
     const router = useRouter();
+    const [res, setRes] = useState(null); 
 
-      const {
+    const {
     register,
     handleSubmit,
-    watch, // Added watch to observe the password value live
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
@@ -30,10 +32,8 @@ export default function SignUpPage() {
       jobTitle: "",
     },
   });
-  // Observe the password value as the user types
   const passwordValue = watch("password", "");
 
-  // Real-time criteria evaluations
   const isAtLeast8Chars = passwordValue.length >= 8;
   const hasUpperLowerDigit = 
     /[A-Z]/.test(passwordValue) && 
@@ -41,20 +41,14 @@ export default function SignUpPage() {
     /[0-9]/.test(passwordValue);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordValue);
   
-
 const onSubmit = async (data: SignUpFormData) => {
   const payload = {
     name: data.name,
     email: data.email,
     password: data.password,
-    ...(data.jobTitle?.trim()
-      ? {
-          jobTitle: data.jobTitle.trim(),
-        }
-      : {}),
+    ...(data.jobTitle?.trim() ? { jobTitle: data.jobTitle.trim() } : {}),
   };
 
-  
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {
       method: "POST",
@@ -64,24 +58,18 @@ const onSubmit = async (data: SignUpFormData) => {
       },
       body: JSON.stringify(payload),
     });
-    // console.log("API Payload:", payload);
-    // console.log("Base URL:", process.env.NEXT_PUBLIC_BASE_URL);
-    // console.log("API Key:", process.env.NEXT_PUBLIC_SECRET_KEYS);
 
     const result = await response.json();
 
-    // console.log("Status:", response.status);
-
     if (!response.ok) {
-      console.error("Signup failed:", result);
-      return;
+      setRes(result.msg);
+      throw new Error(JSON.stringify({ status: response.status, result }));
     }
 
-    // console.log("Signup successful:", result);
     router.push("/projects");
-
+    
   } catch (error) {
-    console.error("Network error:", error);
+    console.error("Network error or manual throw:", error);
   }
 };
 
@@ -94,27 +82,21 @@ const onSubmit = async (data: SignUpFormData) => {
             <p className="text-signup-p-headline text-slate-neutral-medium mt-2 xxs:mx-0">Join the editorial approach to task management.</p>
           </article>
           <article className="mx-auto flex flex-col gap-6">
-            {/* Name */}
+
+            {res && (<h2 className="text-semantic-error text-label-xs w-full rounded-xs p-4 bg-error-input-bg uppercase ml-1 mb-0">{res}</h2>)}
             <Input {...register("name")} type="text" variant={errors.name ? "error" : "default"} label="Name" label_class={`text-label-xs uppercase ml-1 mb-0 ${errors.name? "text-semantic-error" : "text-slate-neutral-medium"}`} helperText={errors.name && errors.name.message || "3-50 characters, letters only."} placeholder="Enter Your Full Name"  className="rounded-sm py-3.5 px-4"/>
             
-            {/* Email */}
             <Input {...register("email")} type="text" variant={errors.email ? "error" : "default"} label="Email" label_class={`text-label-xs uppercase ml-1 mb-0 ${errors.email? "text-semantic-error" : "text-slate-neutral-medium"}`} helperText={errors.email && errors.email.message || ""} placeholder="yourname@company.com"  className="rounded-sm py-3.5 px-4"/>
             
-            {/* Job Title */}
                 <Input {...register("jobTitle")} type="text" variant={errors.jobTitle ? "error" : "default"} label="Job Title (Optional)" label_class={`text-label-xs uppercase ml-1 mb-0 ${errors.jobTitle? "text-semantic-error" : "text-slate-neutral-medium"}`} helperText={errors.jobTitle && errors.jobTitle.message || ""} placeholder="e.g. Project Manager"  className="rounded-sm py-3.5 px-4"/>
 
             <div className="flex flex-col xs:flex-row gap-4">
-              {/* Password */}
               <Input {...register("password")} type="password" variant={errors.password ? "error" : "default"} label="Password" label_class={`text-label-xs uppercase ml-1 mb-0 ${errors.password? "text-semantic-error" : "text-slate-neutral-medium"}`} helperText={errors.password && errors.password.message || ""} placeholder="Password"  className="rounded-sm py-3.5 px-4"/>
 
-
-              {/* Confirm Password */}
               <Input {...register("confirmPassword")} type="password" variant={errors.confirmPassword ? "error" : "default"} label="Confirm Password" label_class={`text-label-xs uppercase ml-1 mb-0 ${errors.confirmPassword? "text-semantic-error" : "text-slate-neutral-medium"}`} helperText={errors.confirmPassword && errors.confirmPassword.message || ""} placeholder="Repeat your password"  className="rounded-sm py-3.5 px-4"/>
 
             </div>
 
-
-          {/* Password Checking Requirements Box */}
           <div className="p-4 rounded-xl bg-password-rules text-slate-neutral-dark text-sm hidden xxs:flex xxs:flex-col xxs:gap-3">
             {/* Requirement 1 */}
             <div className="flex items-center gap-3">

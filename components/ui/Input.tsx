@@ -2,13 +2,13 @@
 import * as React from "react";
 import Image from 'next/image';
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type InputVariant = "default" | "error";
 type Type = "text" | "password";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-// {
   label: string;
   type: Type;
   label_class: string;
@@ -17,7 +17,7 @@ export interface InputProps
   helperText?: string;
   placeholder?: string;
   icon?: string;
-//   required?: boolean;
+  mobile?: boolean;
   className?: string;
 }
 
@@ -33,48 +33,32 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       label,
       type,
       label_class,
+      mobile,
       variant = "default",
       error,
       helperText,
       className = "",
-    //   required,
-    //   id,
       ...props
     },
     ref
   ) => {
-    // const generatedId = React.useId();
 
-    // const inputId = id ?? generatedId;
-
-    // const describedBy =
-    //   error || helperText
-    //     ? `${inputId}-description`
-    //     : undefined;
+    const router = useRouter();
   const [showPassword, setShowPassword] = useState(type === "password" ? false : true);
 
     return (
       <div className="flex w-full flex-col gap-2 relative">
         {label && (
           <label
-            // htmlFor={inputId}
             className={label_class}
           >
             {label}
-
-            {/* {required && (
-              <span className="ml-1 text-[#D92D20]">*</span>
-            )} */}
           </label>
         )}
 
         <input
           ref={ref}
           type={showPassword ? "text" : "password"}
-        //   id={inputId}
-        //   required={required}
-        //   aria-invalid={variant === "error"}
-        //   aria-describedby={describedBy}
           className={`
             h-11
             w-full
@@ -85,9 +69,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
  
- 
-        {/* 4. Position the icon absolute inside the input and add a click handler */}
-
         {(type === "password" && label.toLocaleLowerCase() === "password") && (
           <button
             type="button"
@@ -111,10 +92,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
           </button>
         )}
-
+        {
+          mobile && (
+            <span className="absolute right-0 text-primary text-primary-button-sm font-semibold hover:cursor-pointer" onClick={()=>{router.push("/forgot-password")}}>Forgot?</span>
+          )
+        }
         {(error || helperText) && (
           <p
-            // id={describedBy}
             className={`text-helper-text ${
               variant === "error"
                 ? "text-[#D92D20]"
