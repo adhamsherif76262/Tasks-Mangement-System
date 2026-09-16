@@ -42,12 +42,15 @@ export default function SignUpPage() {
   const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordValue);
   
 const onSubmit = async (data: SignUpFormData) => {
-  const payload = {
+const payload = {
+  email: data.email,
+  password: data.password,
+  data: {
     name: data.name,
-    email: data.email,
-    password: data.password,
-    ...(data.jobTitle?.trim() ? { jobTitle: data.jobTitle.trim() } : {}),
-  };
+    ...(data.jobTitle?.trim() ? { job_title: data.jobTitle.trim() } : {})
+  }
+};
+
 
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {

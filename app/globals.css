@@ -12,8 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@import "tailwindcss";
-
 @theme {
 
   --breakpoint-xs: 500px;
