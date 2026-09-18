@@ -229,7 +229,6 @@ export default function AppNavbar({
         </span>
       </div>
 
-      {/* Desktop keeps the left side empty */}
       <div className="hidden xlg:block" />
 
       {/* User information */}

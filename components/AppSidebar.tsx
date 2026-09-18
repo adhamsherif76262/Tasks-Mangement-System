@@ -564,6 +564,7 @@ export default function AppSidebar({
 
         <nav className="flex flex-col gap-1">
           <button
+          onClick={()=> router.push("/projects")}
             type="button"
             className={`
               flex
@@ -592,6 +593,7 @@ export default function AppSidebar({
 
           <button
             type="button"
+            onClick={()=> router.push("/statistics")}
             className={`
               flex
               h-9
