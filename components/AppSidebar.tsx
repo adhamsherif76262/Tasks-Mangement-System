@@ -10,6 +10,13 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
+type ProjectLink = "Epics" | "Tasks" | "Members" | "Details";
+
+interface ProjectNavigationLink {
+  label: ProjectLink;
+  section: "epics" | "tasks" | "members" | "edit";
+  href: string;
+}
 
 function TasklyIcon() {
   return (
@@ -378,7 +385,7 @@ function CollapseIconRight() {
 function ProjectLinkIcon({
   link,
 }: {
-  link: ProjectLink;
+  link: string;
 }) {
   switch (link) {
     case "Epics":
@@ -419,9 +426,6 @@ export default function AppSidebar({
 
   const router = useRouter();
   const pathname = usePathname();
-
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [pageState, setPageState] = useState<PageState>("loading");
 
   const projectRouteMatch = pathname.match(
   /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
