@@ -1,4 +1,7 @@
 import React from 'react'
+
+import { useRouter, usePathname } from "next/navigation";
+
 type IconName =
   | "cube"
   | "folder"
@@ -159,15 +162,24 @@ function Icon({
 }
 
 export default function MobileBottomNavigator() {
-  const links = [
+  
+  const router = useRouter();
+  const pathname = usePathname();
+  const projectRouteMatch = pathname.match(
+  /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+);
+
+const activeProjectId = projectRouteMatch?.[1] ?? null;
+
+  const links = activeProjectId ?[
     {
       label: "Epics",
-      href: "/projects/epics",
+      href: `/projects/${activeProjectId}/epics`,
       icon: "epics" as IconName,
     },
     {
       label: "Tasks",
-      href: "/projects/tasks",
+      href: `/projects/${activeProjectId}/tasks`,
       icon: "tasks" as IconName,
     },
     {
@@ -177,34 +189,40 @@ export default function MobileBottomNavigator() {
     },
     {
       label: "Members",
-      href: "/projects/members",
+      href: `/projects/${activeProjectId}/members`,
       icon: "members" as IconName,
     },
     {
       label: "Details",
-      href: "/projects/details",
+      href: `/projects/${activeProjectId}/edit`,
       icon: "details" as IconName,
+    },
+  ]:[
+    {
+      label: "Projects",
+      href: "/projects",
+      icon: "folder" as IconName,
     },
   ];
 
   return (
     <nav
-      className="
+      className={`
         fixed
         inset-x-0
         bottom-0
         z-40
         grid
         h-16
-        grid-cols-5
+        ${links.length > 1 ? "grid-cols-5" : "grid-cols-1"}
         border-t
         border-slate-neutral-light/60
         bg-surface-low
         sm:hidden
-      "
+      `}
     >
       {links.map((link) => {
-        const isActive = link.label === "Projects";
+        const isActive = link.label === "" ? pathname.startsWith(link.href) : pathname === link.href;
 
         return (
           <a
@@ -225,7 +243,7 @@ export default function MobileBottomNavigator() {
           >
             <Icon name={link.icon} size={17} />
 
-            <span className="text-[8px] leading-3">
+            <span className="text-[8px]  leading-3">
               {link.label}
             </span>
           </a>

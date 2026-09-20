@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
@@ -34,8 +34,14 @@ interface Toast {
   message: string;
 }
 
-export default function AddProjectPage() {
+export default function EditProjectPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const projectRouteMatch = pathname.match(
+  /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+);
+
+const activeProjectId = projectRouteMatch?.[1] ?? null;
 
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -77,7 +83,7 @@ export default function AddProjectPage() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  const handleCreateProject = async (data: ProjectFormValues) => {
+  const handleEditProject = async (data: ProjectFormValues) => {
     if (isSubmittingProject) return;
 
     setIsSubmittingProject(true);
@@ -118,8 +124,8 @@ export default function AddProjectPage() {
         return;
       }
 
-      const response = await fetch(`${BASE_URL}/rest/v1/projects`, {
-        method: "POST",
+      const response = await fetch(`${BASE_URL}/rest/v1/projects?id=eq.${activeProjectId}`, {
+        method: "PATCH",
         headers: {
           apikey: API_KEY,
           Authorization: `Bearer ${session.access_token}`,
@@ -131,25 +137,19 @@ export default function AddProjectPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed To Add New Project, Try Again Later");
-      }
-
-      reset({
-        name: "",
-        description: "",
-      });
-
       setToast({
         type: "success",
-        message: "Project created successfully",
+        message: "Project updated successfully",
       });
+      setTimeout(() => {
+        router.push("/projects")
+      }, 4000);
     } catch (error) {
-      console.error("Create project error:", error);
+      console.error("Update project error:", error);
 
       setToast({
         type: "error",
-        message: "Failed To Add New Project, Try Again Later",
+        message: `Failed to update project: ${error}`,
       });
     } finally {
       setIsSubmittingProject(false);
@@ -165,11 +165,15 @@ export default function AddProjectPage() {
 
             <span className="text-[#8B91A3]">›</span>
 
-            <span className="text-primary">Add New Project</span>
+            <span className="text-[#8B91A3] hover:cursor-pointer" onClick={()=> router.push("/projects")}>Project Title</span>
+
+            <span className="text-[#8B91A3]">›</span>
+
+            <span className="text-primary">Edit</span>
           </div>
 
           <h1 className="hidden xxs:flex text-[30px] font-bold leading-tight tracking-[-0.02em] text-slate-neutral-dark max-md:text-[25px] max-xxs:text-[22px]">
-            Add New Project
+            Edit Project
           </h1>
 
           <div className="mx-auto mt-8 w-full max-w-138.5 overflow-hidden rounded-lg bg-white max-md:mt-7 max-md:max-w-none max-md:bg-transparent">
@@ -180,7 +184,7 @@ export default function AddProjectPage() {
 
               <div className="min-w-0">
                 <h2 className="text-[21px] font-bold leading-6 text-slate-neutral-dark max-md:text-[20px]">
-                  Initialize New Project
+                  Edit Project
                 </h2>
 
                 <p className="mt-0.5 text-[12px] leading-4 text-slate-neutral-medium">
@@ -190,7 +194,7 @@ export default function AddProjectPage() {
             </div>
 
             <form
-              onSubmit={handleSubmit(handleCreateProject)}
+              onSubmit={handleSubmit(handleEditProject)}
               noValidate
               className="px-6 py-7 max-md:px-0 max-md:py-0"
             >
@@ -281,7 +285,7 @@ export default function AddProjectPage() {
                   disabled={isSubmittingProject}
                   className="flex h-9.5 w-33.5 items-center justify-center rounded-[4px] bg-[#0052CC] px-5 text-[12px] font-bold text-white shadow-[0px_4px_10px_rgba(0,61,155,0.22)] transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-70 max-md:h-11 max-md:w-full"
                 >
-                  {isSubmittingProject ? "Creating..." : "Create Project"}
+                  {isSubmittingProject ? "Updating..." : "Save Changes"}
                 </button>
               </div>
             </form>
@@ -291,8 +295,7 @@ export default function AddProjectPage() {
 
               <p>
                 <span className="font-bold">Pro Tip:</span>{" "}
-                You can invite project members and assign epics immediately
-                after the initial creation process.
+                Pro Tip: You can invite project members and assign epics immediately after the initial creation process.
               </p>
             </div>
           </div>

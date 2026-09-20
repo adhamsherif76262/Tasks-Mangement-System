@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from 'next/link';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
@@ -21,8 +22,18 @@ type PageState = "loading" | "success" | "empty" | "error";
 
 export default function ProjectsPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [projects, setProjects] = useState<Project[]>([]);
   const [pageState, setPageState] = useState<PageState>("loading");
+
+  const projectRouteMatch = pathname.match(
+  /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+);
+
+const activeProjectId = projectRouteMatch?.[1] ?? null;
+const activeProjectSection = projectRouteMatch?.[2] ?? null;
+
+const isInsideProject = Boolean(activeProjectId);
 
   const fetchProjects = useCallback(async () => {
     setPageState("loading");
@@ -101,7 +112,7 @@ export default function ProjectsPage() {
   }, [fetchProjects]);
 
   const handleProjectClick = (projectId: string) => {
-    router.push(`/project/${projectId}/epics`);
+    router.push(`/projects/${projectId}/epics`);
   };
 
   const handleCreateProject = () => {
@@ -134,7 +145,7 @@ export default function ProjectsPage() {
           )}
         </main>
 
-        <MobileBottomNav />
+        {/* <MobileBottomNav /> */}
     </div>
   );
 }
@@ -222,11 +233,16 @@ function ProjectCard({ project, onClick }: ProjectCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-37.5 w-full flex-col rounded-[5px] bg-white px-4 py-4 text-left transition-shadow hover:shadow-[0_4px_15px_rgba(4,27,60,0.08)]"
+      className="group z-50 flex min-h-37.5 w-full flex-col rounded-[5px] bg-white px-4 py-4 text-left transition-shadow hover:shadow-[0_4px_15px_rgba(4,27,60,0.08)]"
     >
-      <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark">
-        {project.name}
-      </h2>
+      <div className="flex justify-between  align-center">
+        <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark">
+          {project.name}
+        </h2>
+        <Link className=" z-100 hover:text:black text-[12px] font-black px-3 rounded-md py-1 bg-[#0052CC]" href={`/projects/${project.id}/edit`}>
+          Edit
+        </Link>
+      </div>
 
       <p className="mt-2 line-clamp-3 min-h-12 text-[9px] leading-4 text-slate-neutral-medium">
         {project.description || "No description provided."}
@@ -450,74 +466,79 @@ function PaginationButton({
   );
 }
 
-function MobileBottomNav() {
-  const router = useRouter();
+// function MobileBottomNav() {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const projectRouteMatch = pathname.match(
+//   /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+// );
 
-  return (
-    <nav className="fixed bottom-0 left-0 z-20 flex h-11 w-full items-center justify-around border-t border-[#E2E5EE] bg-[#F1F3FF] xlg:hidden">
-      <MobileNavItem
-        label="Epics"
-        icon={<EpicsIcon />}
-        onClick={() => {}}
-      />
+// const activeProjectId = projectRouteMatch?.[1] ?? null;
+//   return (
+//     <nav className="fixed bottom-0 left-0 z-20 flex h-11 w-full items-center justify-around border-t border-[#E2E5EE] bg-[#F1F3FF] xlg:hidden">
+//       <MobileNavItem
+//         label="Epics"
+//         icon={<EpicsIcon />}
+//         onClick={() => router.push(`/${activeProjectId}/epics`)}
+//       />
 
-      <MobileNavItem
-        label="Tasks"
-        icon={<TasksIcon />}
-        onClick={() => {}}
-      />
+//       <MobileNavItem
+//         label="Tasks"
+//         icon={<TasksIcon />}
+//         onClick={() => router.push("/tasks")}
+//       />
 
-      <MobileNavItem
-        label="Projects"
-        icon={<FolderIcon />}
-        active
-        onClick={() => router.push("/project")}
-      />
+//       <MobileNavItem
+//         label="Projects"
+//         icon={<FolderIcon />}
+//         active
+//         onClick={() => router.push("/projects")}
+//         />
 
-      <MobileNavItem
-        label="Members"
-        icon={<MembersIcon />}
-        onClick={() => {}}
-      />
+//       <MobileNavItem
+//         label="Members"
+//         icon={<MembersIcon />}
+//         onClick={() => router.push("/members")}
+//       />
 
-      <MobileNavItem
-        label="Details"
-        icon={<DetailsIcon />}
-        onClick={() => {}}
-      />
-    </nav>
-  );
-}
+//       <MobileNavItem
+//         label="Details"
+//         icon={<DetailsIcon />}
+//         onClick={() => router.push("/edit")}
+//       />
+//     </nav>
+//   );
+// }
 
-interface MobileNavItemProps {
-  label: string;
-  icon: React.ReactNode;
-  active?: boolean;
-  onClick: () => void;
-}
+// interface MobileNavItemProps {
+//   label: string;
+//   icon: React.ReactNode;
+//   active?: boolean;
+//   onClick: () => void;
+// }
 
-function MobileNavItem({
-  label,
-  icon,
-  active = false,
-  onClick,
-}: MobileNavItemProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex h-full min-w-13 flex-col items-center justify-center gap-0.5 ${
-        active ? "text-primary" : "text-slate-neutral-medium"
-      }`}
-    >
-      {icon}
+// function MobileNavItem({
+//   label,
+//   icon,
+//   active = false,
+//   onClick,
+// }: MobileNavItemProps) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       className={`flex h-full min-w-13 flex-col items-center justify-center gap-0.5 ${
+//         active ? "text-primary" : "text-slate-neutral-medium"
+//       }`}
+//     >
+//       {icon}
 
-      <span className="text-[6px] font-medium">
-        {label}
-      </span>
-    </button>
-  );
-}
+//       <span className="text-[6px] font-medium">
+//         {label}
+//       </span>
+//     </button>
+//   );
+// }
 
 
 function formatCreatedAt(value: string) {

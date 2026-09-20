@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter , usePathname } from "next/navigation";
+
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -9,14 +10,6 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-type ProjectLink = "Epics" | "Tasks" | "Members" | "Details";
-
-const projectLinks: ProjectLink[] = [
-  "Epics",
-  "Tasks",
-  "Members",
-  "Details",
-];
 
 function TasklyIcon() {
   return (
@@ -341,7 +334,7 @@ function LogoutIcon() {
   );
 }
 
-function CollapseIcon() {
+function CollapseIconLeft() {
   return (
     <svg
       width="20"
@@ -353,6 +346,26 @@ function CollapseIcon() {
     >
       <path
         d="M15 5L8 12L15 19"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function CollapseIconRight() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 5L16 12L9 19"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -400,11 +413,52 @@ export default function AppSidebar({
   mobileOpen = false,
   onMobileClose,
 }: AppSidebarProps) {
+
   const [projectOpen, setProjectOpen] = useState(true);
   const [projectPopupOpen, setProjectPopupOpen] =  useState(false);
-    const router = useRouter();
 
-      const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [pageState, setPageState] = useState<PageState>("loading");
+
+  const projectRouteMatch = pathname.match(
+  /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+);
+
+const activeProjectId = projectRouteMatch?.[1] ?? null;
+const activeProjectSection = projectRouteMatch?.[2] ?? null;
+
+const isInsideProject = Boolean(activeProjectId);
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+
+  const projectLinks = activeProjectId
+  ? [
+      {
+        label: "Epics",
+        section: "epics",
+        href: `/projects/${activeProjectId}/epics`,
+      },
+      {
+        label: "Tasks",
+        section: "tasks",
+        href: `/projects/${activeProjectId}/tasks`,
+      },
+      {
+        label: "Members",
+        section: "members",
+        href: `/projects/${activeProjectId}/members`,
+      },
+      {
+        label: "Details",
+        section: "edit",
+        href: `/projects/${activeProjectId}/edit`,
+      },
+    ]
+  : [];
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -626,7 +680,7 @@ export default function AppSidebar({
 
         {/* Active Project */}
 
-        {collapsed && !isMobile ? (
+        {/* {collapsed && !isMobile ? (
           <div
             ref={popupRef}
             className="relative flex justify-center"
@@ -791,7 +845,186 @@ export default function AppSidebar({
               </div>
             )}
           </div>
-        )}
+        )} */}
+
+
+{/* Active Project */}
+
+{isInsideProject &&
+  (collapsed && !isMobile ? (
+    <div
+      ref={popupRef}
+      className="relative flex justify-center"
+    >
+      <button
+        type="button"
+        aria-label="Open active project links"
+        aria-expanded={projectPopupOpen}
+        onClick={() =>
+          setProjectPopupOpen(
+            (previous) => !previous,
+          )
+        }
+        className={`
+          flex
+          h-11
+          w-11
+          items-center
+          justify-center
+          rounded-sm
+          transition-colors
+          ${
+            projectPopupOpen
+              ? "bg-white text-primary"
+              : "text-slate-neutral-dark hover:bg-white"
+          }
+        `}
+      >
+        <FolderIcon size={21} />
+      </button>
+
+      {projectPopupOpen && (
+        <div
+          className="
+            absolute
+            left-full
+            ml-4
+            top-0
+            p-2
+            z-100
+            w-61.25
+            rounded-md
+            bg-[#D5E2FF]             
+            shadow-[0px_8px_24px_rgba(4,27,60,0.08)]
+          "
+        >
+          {projectLinks.map((link) => (
+            <button
+              key={link.section}
+              type="button"
+              onClick={() => {
+                setProjectPopupOpen(false);
+                router.push(link.href);
+              }}
+              className={`
+                flex
+                h-11
+                w-full
+                items-center
+                gap-3
+                px-4
+                text-left
+                text-slate-neutral-dark
+                hover:bg-[#C9D9FC]
+                ${
+                  activeProjectSection === link.section
+                    ? "bg-[#C9D9FC]"
+                    : ""
+                }
+              `}
+            >
+              <ProjectLinkIcon link={link.label} />
+
+              <span className="text-body-md">
+                {link.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className="overflow-hidden rounded-lg bg-white">
+      <button
+        type="button"
+        onClick={() =>
+          setProjectOpen(
+            (previous) => !previous,
+          )
+        }
+        aria-expanded={projectOpen}
+        className="
+          flex
+          h-11
+          w-full
+          items-center
+          gap-3
+          bg-[#D5E2FF]
+          px-3
+          text-left
+          text-slate-neutral-dark
+        "
+      >
+        <FolderIcon size={20} />
+
+        <span
+          className="
+            min-w-0
+            flex-1
+            truncate
+            text-body-md
+            font-semibold
+          "
+        >
+          Active Project
+        </span>
+
+        <span className="shrink-0 text-default-placeholder">
+          <ChevronIcon
+            direction={
+              projectOpen ? "up" : "down"
+            }
+          />
+        </span>
+      </button>
+
+      {projectOpen && (
+        <div className="py-1">
+          {projectLinks.map((link) => {
+            const isActive =
+              activeProjectSection === link.section;
+
+            return (
+              <button
+                key={link.section}
+                type="button"
+                onClick={() => {
+                  router.push(link.href);
+
+                  if (isMobile) {
+                    onMobileClose?.();
+                  }
+                }}
+                className={`
+                  mx-1
+                  flex
+                  h-10
+                  w-[calc(100%-8px)]
+                  items-center
+                  gap-3
+                  rounded-full
+                  px-3
+                  text-left
+                  transition-colors
+                  ${
+                    isActive
+                      ? "bg-[#F0F3FF] text-slate-neutral-dark"
+                      : "text-slate-neutral-dark hover:bg-[#F5F6FC]"
+                  }
+                `}
+              >
+                <ProjectLinkIcon link={link.label} />
+
+                <span className="text-body-md">
+                  {link.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  ))}
 
         {/* Footer */}
 
@@ -817,7 +1050,12 @@ export default function AppSidebar({
                   }
                 `}
               >
-                <CollapseIcon />
+                {collapsed && (
+                  <CollapseIconRight />
+                )}
+                {!collapsed && (
+                  <CollapseIconLeft />
+                )}
 
                 {!collapsed && (
                   <span className="text-body-md">
