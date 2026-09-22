@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from 'next/link';
+import ProjectCard from "@/components/ProjectCard";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
@@ -154,7 +155,40 @@ interface ProjectsListProps {
   onProjectClick: (projectId: string) => void;
   onCreateProject: () => void;
 }
+function PlusIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
 
+      <path
+        d="M12 8V16"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M8 12H16"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 function ProjectsList({
   projects,
   onProjectClick,
@@ -228,57 +262,57 @@ interface ProjectCardProps {
   onClick: () => void;
 }
 
-function ProjectCard({ project, onClick }: ProjectCardProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group z-50 flex min-h-37.5 w-full flex-col rounded-[5px] bg-white px-4 py-4 text-left transition-shadow hover:shadow-[0_4px_15px_rgba(4,27,60,0.08)]"
-    >
-      <div className="flex justify-between  align-center">
-        <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark">
-          {project.name}
-        </h2>
-        <Link className=" z-100 hover:text:black text-[12px] font-black px-3 rounded-md py-1 bg-[#0052CC]" href={`/projects/${project.id}/edit`}>
-          Edit
-        </Link>
-      </div>
+// function ProjectCard({ project, onClick }: ProjectCardProps) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={onClick}
+//       className="group z-50 flex min-h-37.5 w-full flex-col rounded-[5px] bg-white px-4 py-4 text-left transition-shadow hover:shadow-[0_4px_15px_rgba(4,27,60,0.08)]"
+//     >
+//       <div className="flex justify-between  align-center">
+//         <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark">
+//           {project.name}
+//         </h2>
+//         <Link className=" z-100 hover:text:black text-[12px] font-black px-3 rounded-md py-1 bg-[#0052CC]" href={`/projects/${project.id}/edit`}>
+//           Edit
+//         </Link>
+//       </div>
 
-      <p className="mt-2 line-clamp-3 min-h-12 text-[9px] leading-4 text-slate-neutral-medium">
-        {project.description || "No description provided."}
-      </p>
+//       <p className="mt-2 line-clamp-3 min-h-12 text-[9px] leading-4 text-slate-neutral-medium">
+//         {project.description || "No description provided."}
+//       </p>
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-        <div className="flex items-center gap-5">
-          <ProjectCardLink
-            icon={<EpicsIcon />}
-            label="Epics"
-          />
+//       <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+//         <div className="flex items-center gap-5">
+//           <ProjectCardLink
+//             icon={<EpicsIcon />}
+//             label="Epics"
+//           />
 
-          <ProjectCardLink
-            icon={<TasksIcon />}
-            label="Tasks"
-          />
+//           <ProjectCardLink
+//             icon={<TasksIcon />}
+//             label="Tasks"
+//           />
 
-          <ProjectCardLink
-            icon={<MembersIcon />}
-            label="Members"
-          />
-        </div>
-      </div>
+//           <ProjectCardLink
+//             icon={<MembersIcon />}
+//             label="Members"
+//           />
+//         </div>
+//       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-[#F0F1F6] pt-2.5">
-        <span className="text-[7px] font-bold uppercase tracking-[0.05em] text-slate-neutral-medium">
-          Created At
-        </span>
+//       <div className="mt-4 flex items-center justify-between border-t border-[#F0F1F6] pt-2.5">
+//         <span className="text-[7px] font-bold uppercase tracking-[0.05em] text-slate-neutral-medium">
+//           Created At
+//         </span>
 
-        <span className="text-[8px] text-slate-neutral-dark">
-          {formatCreatedAt(project.created_at)}
-        </span>
-      </div>
-    </button>
-  );
-}
+//         <span className="text-[8px] text-slate-neutral-dark">
+//           {formatCreatedAt(project.created_at)}
+//         </span>
+//       </div>
+//     </button>
+//   );
+// }
 
 interface ProjectCardLinkProps {
   icon: React.ReactNode;
@@ -540,21 +574,6 @@ function PaginationButton({
 //   );
 // }
 
-
-function formatCreatedAt(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
 function FolderIcon({ size = 17 }: { size?: number }) {
   return (
     <svg
@@ -570,213 +589,6 @@ function FolderIcon({ size = 17 }: { size?: number }) {
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function EpicsIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <rect
-        x="3"
-        y="8"
-        width="6"
-        height="6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <rect
-        x="15"
-        y="3"
-        width="6"
-        height="6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <rect
-        x="15"
-        y="15"
-        width="6"
-        height="6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="M9 11H12C13.66 11 15 9.66 15 8V6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="M12 11C13.66 11 15 12.34 15 14V18"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function TasksIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M4 7.5L6.5 10L10.5 5.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="M13 8H21"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M4 15.5L6.5 18L10.5 13.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="M13 16H21"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function MembersIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <circle
-        cx="9"
-        cy="8"
-        r="3"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="M3 19C3 15.69 5.69 13 9 13C12.31 13 15 15.69 15 19"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M15 11C17.21 11 19 12.79 19 15"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M16 19H21"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function DetailsIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
-      <path
-        d="M12 11V16"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-
-      <circle
-        cx="12"
-        cy="7.5"
-        r="1"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-function PlusIcon({ size = 15 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="8"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-
-      <path
-        d="M12 8V16"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M8 12H16"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
       />
     </svg>
   );
