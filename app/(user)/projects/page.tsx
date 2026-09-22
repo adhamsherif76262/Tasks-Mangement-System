@@ -222,7 +222,8 @@ function ProjectsList({
           <ProjectCard
             key={project.id}
             project={project}
-            // onClick={() => onProjectClick(project.id)}
+            disabled={true}
+            // onClick={() => router.push(`/projects/${projectId}/epics`)}
           />
         ))}
 
