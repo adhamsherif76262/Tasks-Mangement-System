@@ -86,6 +86,8 @@ export default function ResetPasswordPage() {
     useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [IsSuccess, setIsSuccess] = useState(false);
+  const [Countdown, setCountdown] = useState(0);
 
   const [resetError, setResetError] = useState("");
 
