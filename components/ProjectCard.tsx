@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 // import { EpicsIcon, TasksIcon, MembersIcon, EditIcon } from "@/components/Icons"; // Adjust imports based on your structure
 
 interface ProjectCardProps {
-  project: {
-    id: string | number;
-    name: string;
-    description?: string;
-    created_at: string;
-  };
+      project: any; 
+//   project: {
+//     id: string | number;
+//     name: string;
+//     description?: string;
+//     created_at: string;
+//   };
 }
 
 function EditIcon() {

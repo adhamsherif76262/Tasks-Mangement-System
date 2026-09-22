@@ -222,7 +222,7 @@ function ProjectsList({
           <ProjectCard
             key={project.id}
             project={project}
-            onClick={() => onProjectClick(project.id)}
+            // onClick={() => onProjectClick(project.id)}
           />
         ))}
 
