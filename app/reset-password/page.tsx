@@ -266,17 +266,17 @@ export default function ResetPasswordPage() {
 
   const handleResetPassword = async (data: ResetPasswordFormValues) => {
   if (!accessToken) {
-    setFormError("Invalid or expired reset link.");
+    setResetError("Invalid or expired reset link.");
     return;
   }
 
   if (!BASE_URL || !API_KEY) {
-    setFormError("Password reset is temporarily unavailable. Please try again later.");
+    setResetError("Password reset is temporarily unavailable. Please try again later.");
     return;
   }
 
   setIsSubmitting(true);
-  setFormError("");
+  setResetError("");
 
   try {
     const response = await fetch(`${BASE_URL}/auth/v1/user`, {
@@ -305,11 +305,11 @@ export default function ResetPasswordPage() {
         apiError?.toLowerCase().includes("old password") ||
         apiError?.toLowerCase().includes("different")
       ) {
-        setFormError(
+        setResetError(
           "Your new password must be different from your current password.",
         );
       } else {
-        setFormError(
+        setResetError(
           apiError ||
             "We couldn't update your password. Please try again.",
         );
@@ -324,7 +324,7 @@ export default function ResetPasswordPage() {
   } catch (error) {
     console.error("Password update error:", error);
 
-    setFormError(
+    setResetError(
       "We couldn't update your password. Please try again later.",
     );
   } finally {
