@@ -57,6 +57,12 @@
   --text-primary-button-lg--line-height: 1.5rem;
   --text-primary-button-lg--font-weight: 600;
   --text-primary-button-lg--letter-spacing: 0;
+
+/** 12-19.5-500-0**/
+  --text-success-message: 0.75rem;             
+  --text-success-message--line-height: 1.22rem;
+  --text-success-message--font-weight: 500;
+  --text-success-message--letter-spacing: 0;
 /** 14-20-600-0**/
   --text-primary-button-sm: 0.875rem;             
   --text-primary-button-sm--line-height: 1.25rem;
@@ -72,6 +78,11 @@
   --text-signup-p-headline--line-height: 1.25rem;
   --text-signup-p-headline--font-weight: 400;
   --text-signup-p-headline--letter-spacing: 0;
+  /** 14-21-500-0**/
+  --text-back-to-login: 0.875rem;             
+  --text-back-to-login--line-height: 1.3125rem;
+  --text-back-to-login--font-weight: 500;
+  --text-back-to-login--letter-spacing: 0;
   /** 14-22.75-400-0**/
   --text-body-md: 0.875rem;             
   --text-body-md--line-height: 1.422rem;

@@ -168,8 +168,6 @@ const {
   return (
     <section className="w-full bg-surface-low min-h-221">
 
-      <PublicNavbar />
-
       <div className="w-full xxs:px-6 xxs:py-36.75">
 
         <form
