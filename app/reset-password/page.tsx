@@ -182,87 +182,155 @@ export default function ResetPasswordPage() {
     }));
   }, [password]);
 
-  const updatePassword = async (
-    data: ResetPasswordFormValues,
-  ) => {
-    if (isSubmitting) return;
+//   const updatePassword = async (
+//     data: ResetPasswordFormValues,
+//   ) => {
+//     if (isSubmitting) return;
 
-    if (!accessToken) {
-      setResetError("Invalid or expired reset link.");
+//     if (!accessToken) {
+//       setResetError("Invalid or expired reset link.");
+//       return;
+//     }
+
+//     setIsSubmitting(true);
+//     setResetError("");
+
+//     try {
+//       if (!BASE_URL) {
+//         throw new Error(
+//           "Password reset is temporarily unavailable.",
+//         );
+//       }
+
+//       if (!API_KEY) {
+//         throw new Error(
+//           "Password reset is temporarily unavailable.",
+//         );
+//       }
+
+//       const response = await fetch(
+//         `${BASE_URL}/auth/v1/user`,
+//         {
+//           method: "PUT",
+//           headers: {
+//             Authorization: `Bearer ${accessToken}`,
+//             apikey: API_KEY,
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({
+//             password: data.password,
+//           }),
+//         },
+//       );
+
+//       const responseData = await response
+//         .json()
+//         .catch(() => null);
+
+//       if (!response.ok) {
+//         /*
+//          * A failed recovery-token request can mean that
+//          * the recovery link is invalid or expired.
+//          */
+//         const apiMessage =
+//           responseData?.message ||
+//           responseData?.error_description ||
+//           responseData?.error;
+
+//         if (
+//           response.status === 401 ||
+//           response.status === 403 ||
+//           !apiMessage
+//         ) {
+//           throw new Error(
+//             "Invalid or expired reset link.",
+//           );
+//         }
+
+//         throw new Error(apiMessage);
+//       }
+
+//       setIsPasswordUpdated(true);
+//     } catch (error) {
+//       console.error("Reset password error:", error);
+
+//       setResetError(
+//         error instanceof Error
+//           ? error.message
+//           : "Unable to update your password. Please try again.",
+//       );
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+  const handleResetPassword = async (data: ResetPasswordFormData) => {
+  if (!accessToken) {
+    setFormError("Invalid or expired reset link.");
+    return;
+  }
+
+  if (!BASE_URL || !API_KEY) {
+    setFormError("Password reset is temporarily unavailable. Please try again later.");
+    return;
+  }
+
+  setIsSubmitting(true);
+  setFormError("");
+
+  try {
+    const response = await fetch(`${BASE_URL}/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        apikey: API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: data.password,
+      }),
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const apiError =
+        result?.msg ||
+        result?.message ||
+        result?.error_description ||
+        result?.error;
+
+      if (
+        apiError?.toLowerCase().includes("same") ||
+        apiError?.toLowerCase().includes("old password") ||
+        apiError?.toLowerCase().includes("different")
+      ) {
+        setFormError(
+          "Your new password must be different from your current password.",
+        );
+      } else {
+        setFormError(
+          apiError ||
+            "We couldn't update your password. Please try again.",
+        );
+      }
+
       return;
     }
 
-    setIsSubmitting(true);
-    setResetError("");
+    // Success
+    setIsSuccess(true);
+    setCountdown(3);
+  } catch (error) {
+    console.error("Password update error:", error);
 
-    try {
-      if (!BASE_URL) {
-        throw new Error(
-          "Password reset is temporarily unavailable.",
-        );
-      }
-
-      if (!API_KEY) {
-        throw new Error(
-          "Password reset is temporarily unavailable.",
-        );
-      }
-
-      const response = await fetch(
-        `${BASE_URL}/auth/v1/user`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            apikey: API_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            password: data.password,
-          }),
-        },
-      );
-
-      const responseData = await response
-        .json()
-        .catch(() => null);
-
-      if (!response.ok) {
-        /*
-         * A failed recovery-token request can mean that
-         * the recovery link is invalid or expired.
-         */
-        const apiMessage =
-          responseData?.message ||
-          responseData?.error_description ||
-          responseData?.error;
-
-        if (
-          response.status === 401 ||
-          response.status === 403 ||
-          !apiMessage
-        ) {
-          throw new Error(
-            "Invalid or expired reset link.",
-          );
-        }
-
-        throw new Error(apiMessage);
-      }
-
-      setIsPasswordUpdated(true);
-    } catch (error) {
-      console.error("Reset password error:", error);
-
-      setResetError(
-        error instanceof Error
-          ? error.message
-          : "Unable to update your password. Please try again.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    setFormError(
+      "We couldn't update your password. Please try again later.",
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   /*
    * Recovery link is still being inspected.
@@ -413,7 +481,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <form
-            onSubmit={handleSubmit(updatePassword)}
+            onSubmit={handleSubmit(handleResetPassword)}
             noValidate
             className="mt-7"
           >
