@@ -26,7 +26,11 @@ type ProjectFormValues = z.infer<typeof projectSchema>;
 interface AuthSession {
   access_token: string;
 }
-
+interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+}
 type ToastType = "success" | "error";
 
 interface Toast {
@@ -44,6 +48,7 @@ export default function EditProjectPage() {
 const activeProjectId = projectRouteMatch?.[1] ?? null;
 
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const {
@@ -72,6 +77,116 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
       router.replace("/login");
     }
   }, [router]);
+
+  useEffect(() => {
+  const fetchProject = async () => {
+    if (!activeProjectId) {
+      setIsLoadingProject(false);
+
+      setToast({
+        type: "error",
+        message: "Unable to determine the selected project.",
+      });
+
+      return;
+    }
+
+    try {
+      if (!BASE_URL) {
+        throw new Error(
+          "NEXT_PUBLIC_BASE_URL is not configured.",
+        );
+      }
+
+      if (!API_KEY) {
+        throw new Error(
+          "NEXT_PUBLIC_SECRET_KEYS is not configured.",
+        );
+      }
+
+      const storedSession =
+        localStorage.getItem("auth_session") ??
+        sessionStorage.getItem("auth_session");
+
+      if (!storedSession) {
+        router.replace("/login");
+        return;
+      }
+
+      let session: AuthSession;
+
+      try {
+        session = JSON.parse(storedSession);
+      } catch {
+        localStorage.removeItem("auth_session");
+        localStorage.removeItem("auth_session_expires");
+        sessionStorage.removeItem("auth_session");
+
+        router.replace("/login");
+        return;
+      }
+
+      if (!session.access_token) {
+        router.replace("/login");
+        return;
+      }
+
+      const response = await fetch(
+        `${BASE_URL}/rest/v1/rpc/get_projects?id=eq.${activeProjectId}`,
+        {
+          method: "GET",
+          headers: {
+            apikey: API_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const responseData = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMessage =
+          responseData?.message ||
+          responseData?.error ||
+          responseData?.details ||
+          "Failed to retrieve project details.";
+
+        throw new Error(errorMessage);
+      }
+
+      const project: Project | undefined =
+        Array.isArray(responseData)
+          ? responseData[0]
+          : responseData;
+
+      if (!project) {
+        throw new Error(
+          "The selected project could not be found.",
+        );
+      }
+
+      reset({
+        name: project.name ?? "",
+        description: project.description ?? "",
+      });
+    } catch (error) {
+      console.error("Get project error:", error);
+
+      setToast({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve project details.",
+      });
+    } finally {
+      setIsLoadingProject(false);
+    }
+  };
+
+  fetchProject();
+}, [activeProjectId, reset, router]);
 
   useEffect(() => {
     if (!toast) return;
@@ -214,8 +329,9 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
                   maxLength={100}
                   autoComplete="off"
                   placeholder=""
+                  disabled={isLoadingProject || isSubmittingProject}
                   {...register("name")}
-                  className={`h-11 w-full rounded-[4px] border bg-[#D5E1FB] px-4 text-[14px] text-slate-neutral-dark outline-none transition-colors placeholder:text-[#94A5C8] focus:border-primary ${
+                  className={`h-11 disabled:cursor-not-allowed disabled:opacity-70 w-full rounded-[4px] border bg-[#D5E1FB] px-4 text-[14px] text-slate-neutral-dark outline-none transition-colors placeholder:text-[#94A5C8] focus:border-primary ${
                     errors.name
                       ? "border-transparent"
                       : "border-transparent"
@@ -246,9 +362,10 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
                   id="project-description"
                   maxLength={500}
                   rows={5}
+                  disabled={isLoadingProject || isSubmittingProject}
                   placeholder="Provide a high-level overview of the project's architectural objectives and key milestones..."
                   {...register("description")}
-                  className="min-h-30 w-full resize-none rounded-[4px] border border-transparent bg-[#D5E1FB] px-4 py-3.5 text-[14px] leading-5 text-slate-neutral-dark outline-none transition-colors placeholder:text-[#94A5C8] focus:border-primary"
+                  className="disabled:cursor-not-allowed disabled:opacity-70 min-h-30 w-full resize-none rounded-[4px] border border-transparent bg-[#D5E1FB] px-4 py-3.5 text-[14px] leading-5 text-slate-neutral-dark outline-none transition-colors placeholder:text-[#94A5C8] focus:border-primary"
                 />
 
                 <div className="mt-1 flex justify-end">
