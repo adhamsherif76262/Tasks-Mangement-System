@@ -1,7 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import PublicNavbar from '@/components/PublicNavbar';
 import { useRouter } from "next/navigation";
 import Image from "next/image"; // Imported to handle checking status icons
 import {
@@ -78,7 +77,6 @@ const payload = {
 
   return (
       <section className='w-full bg-surface-low'>
-        <PublicNavbar></PublicNavbar>   
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white max-w-xl mx-auto mt-4 mb-32 pb-18.5 px-6 xxs:p-12 shadow[0px_24px_48px_0px_#041B3C0F]">
           <article className="text-center pb-10 max-xxs:pt-8">
             <h1 className="text-slate-neutral-dark text-signup-headline-lg font-semibold">Create Your Workspace</h1>

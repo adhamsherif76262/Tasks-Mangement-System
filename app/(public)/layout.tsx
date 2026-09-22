@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
+import PublicNavbar from "@/components/PublicNavbar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,14 +15,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable}`}
-    >
-      
-      <body className="">
-        {children}
-      </body>
-    </html>
+    <div className="w-full bg-surface-low">
+      <PublicNavbar />
+      <main>{children}</main>
+    </div>
   );
 }
