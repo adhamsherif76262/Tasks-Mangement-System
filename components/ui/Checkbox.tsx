@@ -28,7 +28,7 @@ export default function Checkbox({
           {...props}
         />
 
-        <span className="text-sm">
+        <span className="text-ghost-button text-black">
           {label}
         </span>
       </label>

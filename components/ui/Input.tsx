@@ -94,7 +94,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         {
           mobile && (
-            <span className="absolute right-0 text-primary text-primary-button-sm font-semibold hover:cursor-pointer" onClick={()=>{router.push("/forgot-password")}}>Forgot?</span>
+            <span className="absolute right-0 text-primary xxs:hidden text-primary-button-sm font-semibold hover:cursor-pointer" onClick={()=>{router.push("/forgot-password")}}>Forgot?</span>
           )
         }
         {(error || helperText) && (
