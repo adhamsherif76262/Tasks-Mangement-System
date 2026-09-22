@@ -116,45 +116,79 @@ export default function ForgotPasswordPage() {
   /*
    * Send password recovery email.
    */
+  // const sendResetEmail = async (email: string) => {
+  //   if (!BASE_URL) {
+  //     throw new Error(
+  //       "Password reset is temporarily unavailable.",
+  //     );
+  //   }
+
+  //   if (!API_KEY) {
+  //     throw new Error(
+  //       "Password reset is temporarily unavailable.",
+  //     );
+  //   }
+
+  //   const response = await fetch(
+  //     `${BASE_URL}/auth/v1/recover`,
+  //     {
+  //       method: "POST",
+  //       headers: {
+  //         apikey: API_KEY,
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         email,
+  //       }),
+  //     },
+  //   );
+
+  //   if (!response.ok) {
+  //     /*
+  //      * We intentionally do not expose the raw server response
+  //      * because the forgot-password flow must not reveal
+  //      * sensitive account information.
+  //      */
+  //     throw new Error(
+  //       "We couldn't send the reset link right now. Please try again later.",
+  //     );
+  //   }
+  // };
+
   const sendResetEmail = async (email: string) => {
-    if (!BASE_URL) {
-      throw new Error(
-        "Password reset is temporarily unavailable.",
-      );
-    }
-
-    if (!API_KEY) {
-      throw new Error(
-        "Password reset is temporarily unavailable.",
-      );
-    }
-
-    const response = await fetch(
-      `${BASE_URL}/auth/v1/recover`,
-      {
-        method: "POST",
-        headers: {
-          apikey: API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-        }),
-      },
+  if (!BASE_URL) {
+    throw new Error(
+      "Password reset is temporarily unavailable.",
     );
+  }
 
-    if (!response.ok) {
-      /*
-       * We intentionally do not expose the raw server response
-       * because the forgot-password flow must not reveal
-       * sensitive account information.
-       */
-      throw new Error(
-        "We couldn't send the reset link right now. Please try again later.",
-      );
-    }
-  };
+  if (!API_KEY) {
+    throw new Error(
+      "Password reset is temporarily unavailable.",
+    );
+  }
 
+  const response = await fetch(
+    `${BASE_URL}/auth/v1/recover`,
+    {
+      method: "POST",
+      headers: {
+        apikey: API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        redirect_to: `${window.location.origin}/reset-password`,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "We couldn't send the reset link right now. Please try again later.",
+    );
+  }
+};
   /*
    * Initial password reset request.
    */
