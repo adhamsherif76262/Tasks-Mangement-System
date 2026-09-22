@@ -264,7 +264,7 @@ export default function ResetPasswordPage() {
 //     }
 //   };
 
-  const handleResetPassword = async (data: ResetPasswordFormData) => {
+  const handleResetPassword = async (data: ResetPasswordFormValues) => {
   if (!accessToken) {
     setFormError("Invalid or expired reset link.");
     return;
