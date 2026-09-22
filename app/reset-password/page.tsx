@@ -150,11 +150,11 @@ export default function ResetPasswordPage() {
      * The token is therefore not displayed in the UI and
      * does not remain visible in the address bar.
      */
-    window.history.replaceState(
-      null,
-      "",
-      window.location.pathname,
-    );
+    // window.history.replaceState(
+    //   null,
+    //   "",
+    //   window.location.pathname,
+    // );
   }, []);
 
   /*
