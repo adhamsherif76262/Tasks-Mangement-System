@@ -261,6 +261,67 @@ const handleResetPassword = async (data: ResetPasswordFormValues) => {
   }
 };
 
+// const handleResetPassword = async (data: ResetPasswordFormValues) => {
+//   if (isSubmitting) return;
+
+//   setIsSubmitting(true);
+//   setResetError("");
+
+//   try {
+//     // 🔒 Secure internal fetch call proxy matching your server configuration
+//     const response = await fetch("/api/auth/reset-password", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         password: data.password,
+//       }),
+//     });
+
+//     const responseData = await response.json().catch(() => null);
+
+//     if (!response.ok) {
+//       const apiMessage = responseData?.error || "";
+//       const normalizedMessage = apiMessage.toLowerCase();
+
+//       // 💡 Preserve your custom error prioritization checks cleanly on the client layer
+//       if (
+//         normalizedMessage.includes("same") ||
+//         normalizedMessage.includes("old password") ||
+//         normalizedMessage.includes("different")
+//       ) {
+//         throw new Error(
+//           "Your new password must be different from your current password."
+//         );
+//       }
+
+//       if (response.status === 401 || response.status === 403 || !apiMessage) {
+//         throw new Error("Invalid or expired reset link.");
+//       }
+
+//       throw new Error(apiMessage || "Unable to update your password. Please try again.");
+//     }
+
+//     // Success workflow triggers completely unbothered
+//     setIsPasswordUpdated(true);
+//     setIsSuccess(true);        
+//     setCountdown(3);           
+
+//   } catch (error) {
+//     console.error("Reset password client processing error:", error);
+
+//     setResetError(
+//       error instanceof Error
+//         ? error.message
+//         : "Unable to update your password. Please try again."
+//     );
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
   /*
    * Recovery link is still being inspected.
    */

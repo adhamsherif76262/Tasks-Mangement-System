@@ -13,7 +13,7 @@ import { useState } from "react";
 
 export default function SignUpPage() {
     const router = useRouter();
-    const [res, setRes] = useState(null); 
+    const [res, setRes] = useState<string | null>(null); 
 
     const {
     register,
@@ -40,40 +40,88 @@ export default function SignUpPage() {
     /[0-9]/.test(passwordValue);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(passwordValue);
   
-const onSubmit = async (data: SignUpFormData) => {
-const payload = {
-  email: data.email,
-  password: data.password,
-  data: {
-    name: data.name,
-    ...(data.jobTitle?.trim() ? { job_title: data.jobTitle.trim() } : {})
-  }
-};
+// const onSubmit = async (data: SignUpFormData) => {
+// const payload = {
+//   email: data.email,
+//   password: data.password,
+//   data: {
+//     name: data.name,
+//     ...(data.jobTitle?.trim() ? { job_title: data.jobTitle.trim() } : {})
+//   }
+// };
 
 
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
-      },
-      body: JSON.stringify(payload),
-    });
+//   try {
+//     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/v1/signup`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//       },
+//       body: JSON.stringify(payload),
+//     });
 
-    const result = await response.json();
+//     const result = await response.json();
 
-    if (!response.ok) {
-      setRes(result.msg);
-      throw new Error(JSON.stringify({ status: response.status, result }));
-    }
+//     if (!response.ok) {
+//       setRes(result.msg);
+//       throw new Error(JSON.stringify({ status: response.status, result }));
+//     }
 
-    router.push("/projects");
+//     router.push("/projects");
     
-  } catch (error) {
-    console.error("Network error or manual throw:", error);
-  }
-};
+//   } catch (error) {
+//     console.error("Network error or manual throw:", error);
+//   }
+// };
+
+
+  // ... Keep your useForm definitions and password validation check patterns exactly as they were!
+
+  const onSubmit = async (data: SignUpFormData) => {
+    setRes(null);
+
+    const payload = {
+      email: data.email,
+      password: data.password,
+      data: {
+        name: data.name,
+        ...(data.jobTitle?.trim() ? { job_title: data.jobTitle.trim() } : {}),
+      },
+    };
+
+    try {
+      // 🔒 Point form data to your secure, unified local proxy API route
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Set the precise error text parsed out cleanly from the proxy server
+        setRes(result?.error || "Registration encountered an issue. Please try again.");
+        return;
+      }
+
+      // Flush out any stale web storage cache items from past historical debug configurations
+      localStorage.removeItem("auth_session");
+      sessionStorage.removeItem("auth_session");
+
+      // Success! Push navigation forward and refresh layout routers
+      router.push("/projects");
+      router.refresh();
+    } catch (error) {
+      console.error("Client sign-up exception processing error:", error);
+      setRes("Something went wrong. Please check your network and try again.");
+    }
+  };
+
+  // ... The rest of your return HTML/JSX section stays exactly the same as you had it written!
 
   return (
       <section className='w-full bg-surface-low'>
