@@ -1,3 +1,189 @@
+// "use client";
+
+// import { useEffect, useMemo, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { zodResolver } from "@hookform/resolvers/zod";
+
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
+
+// const passwordSchema = z
+//   .string()
+//   .min(8, "Password must be at least 8 characters.")
+//   .max(64, "Password must not exceed 64 characters.")
+//   .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+//   .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+//   .regex(/[0-9]/, "Password must contain at least one digit.")
+//   .regex(
+//     /[^A-Za-z0-9]/,
+//     "Password must contain at least one special character.",
+//   );
+
+// const resetPasswordSchema = z
+//   .object({
+//     password: passwordSchema,
+//     confirmPassword: z.string(),
+//   })
+//   .refine((data) => data.password === data.confirmPassword, {
+//     message: "Passwords do not match.",
+//     path: ["confirmPassword"],
+//   });
+
+// type ResetPasswordFormValues = z.infer<
+//   typeof resetPasswordSchema
+// >;
+
+// type PasswordRequirement = {
+//   key:
+//     | "length"
+//     | "uppercase"
+//     | "lowercase"
+//     | "digit"
+//     | "special";
+//   label: string;
+//   isValid: (password: string) => boolean;
+// };
+
+// const passwordRequirements: PasswordRequirement[] = [
+//   {
+//     key: "length",
+//     label: "8-64 characters",
+//     isValid: (password) =>
+//       password.length >= 8 && password.length <= 64,
+//   },
+//   {
+//     key: "uppercase",
+//     label: "Uppercase letter",
+//     isValid: (password) => /[A-Z]/.test(password),
+//   },
+//   {
+//     key: "lowercase",
+//     label: "Lowercase letter",
+//     isValid: (password) => /[a-z]/.test(password),
+//   },
+//   {
+//     key: "digit",
+//     label: "At least one digit",
+//     isValid: (password) => /[0-9]/.test(password),
+//   },
+//   {
+//     key: "special",
+//     label: "Special character (e.g. !@#$%)",
+//     isValid: (password) => /[^A-Za-z0-9]/.test(password),
+//   },
+// ];
+
+// export default function ResetPasswordPage() {
+//   const router = useRouter();
+
+//   const [accessToken, setAccessToken] = useState<string | null>(
+//     null,
+//   );
+
+//   const [isCheckingRecoveryLink, setIsCheckingRecoveryLink] =
+//     useState(true);
+
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [IsSuccess, setIsSuccess] = useState(false);
+//   const [Countdown, setCountdown] = useState(0);
+
+//   const [resetError, setResetError] = useState("");
+
+//   const [isPasswordUpdated, setIsPasswordUpdated] =
+//     useState(false);
+
+//   const [redirectSeconds, setRedirectSeconds] = useState(3);
+
+//   const [showPassword, setShowPassword] = useState(false);
+
+//   const {
+//     register,
+//     handleSubmit,
+//     watch,
+//     formState: { errors },
+//   } = useForm<ResetPasswordFormValues>({
+//     resolver: zodResolver(resetPasswordSchema),
+//     mode: "onChange",
+//     defaultValues: {
+//       password: "",
+//       confirmPassword: "",
+//     },
+//   });
+
+//   const password = watch("password") ?? "";
+//   const confirmPassword = watch("confirmPassword") ?? "";
+
+//   /*
+//    * Read the recovery information from the URL hash.
+//    *
+//    * Example:
+//    * /reset-password#access_token=...&refresh_token=...&type=recovery
+//    */
+//   useEffect(() => {
+//     const hash = window.location.hash;
+
+//     if (!hash) {
+//       setIsCheckingRecoveryLink(false);
+//       return;
+//     }
+
+//     const hashParams = new URLSearchParams(
+//       hash.substring(1),
+//     );
+
+//     const type = hashParams.get("type");
+//     const token = hashParams.get("access_token");
+
+//     if (type !== "recovery" || !token) {
+//       setAccessToken(null);
+//       setIsCheckingRecoveryLink(false);
+//       return;
+//     }
+
+//     setAccessToken(token);
+//     setIsCheckingRecoveryLink(false);
+
+//     /*
+//      * Remove the token from the visible browser URL while
+//      * keeping it available in component state.
+//      *
+//      * The token is therefore not displayed in the UI and
+//      * does not remain visible in the address bar.
+//      */
+//     window.history.replaceState(
+//       null,
+//       "",
+//       window.location.pathname,
+//     );
+//   }, []);
+
+//   /*
+//    * Redirect to login after a successful password update.
+//    */
+//   useEffect(() => {
+//     if (!isPasswordUpdated) return;
+
+//     if (redirectSeconds <= 0) {
+//       router.replace("/login");
+//       return;
+//     }
+
+//     const timeout = window.setTimeout(() => {
+//       setRedirectSeconds((previous) => previous - 1);
+//     }, 1000);
+
+//     return () => window.clearTimeout(timeout);
+//   }, [isPasswordUpdated, redirectSeconds, router]);
+
+//   const requirementStatus = useMemo(() => {
+//     return passwordRequirements.map((requirement) => ({
+//       ...requirement,
+//       valid: requirement.isValid(password),
+//     }));
+//   }, [password]);
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -6,8 +192,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
+// 🔒 Client-side Environment Key references have been cleanly purged!
 
 const passwordSchema = z
   .string()
@@ -31,17 +216,10 @@ const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-type ResetPasswordFormValues = z.infer<
-  typeof resetPasswordSchema
->;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 type PasswordRequirement = {
-  key:
-    | "length"
-    | "uppercase"
-    | "lowercase"
-    | "digit"
-    | "special";
+  key: "length" | "uppercase" | "lowercase" | "digit" | "special";
   label: string;
   isValid: (password: string) => boolean;
 };
@@ -50,8 +228,7 @@ const passwordRequirements: PasswordRequirement[] = [
   {
     key: "length",
     label: "8-64 characters",
-    isValid: (password) =>
-      password.length >= 8 && password.length <= 64,
+    isValid: (password) => password.length >= 8 && password.length <= 64,
   },
   {
     key: "uppercase",
@@ -78,24 +255,15 @@ const passwordRequirements: PasswordRequirement[] = [
 export default function ResetPasswordPage() {
   const router = useRouter();
 
-  const [accessToken, setAccessToken] = useState<string | null>(
-    null,
-  );
-
-  const [isCheckingRecoveryLink, setIsCheckingRecoveryLink] =
-    useState(true);
-
+  // 🔒 Removed 'accessToken' and 'isCheckingRecoveryLink' hooks!
+  // Since Middleware validates access before rendering, these tracking flags are obsolete.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [IsSuccess, setIsSuccess] = useState(false);
   const [Countdown, setCountdown] = useState(0);
 
   const [resetError, setResetError] = useState("");
-
-  const [isPasswordUpdated, setIsPasswordUpdated] =
-    useState(false);
-
+  const [isPasswordUpdated, setIsPasswordUpdated] = useState(false);
   const [redirectSeconds, setRedirectSeconds] = useState(3);
-
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -115,48 +283,12 @@ export default function ResetPasswordPage() {
   const password = watch("password") ?? "";
   const confirmPassword = watch("confirmPassword") ?? "";
 
-  /*
-   * Read the recovery information from the URL hash.
-   *
-   * Example:
-   * /reset-password#access_token=...&refresh_token=...&type=recovery
-   */
+  // 🔒 Replaced the old url hash parsing useEffect block with a simple URL cleanup hook.
+  // The server-side code handles verification, so this simply clears out leftover parameters if visible.
   useEffect(() => {
-    const hash = window.location.hash;
-
-    if (!hash) {
-      setIsCheckingRecoveryLink(false);
-      return;
+    if (window.location.search || window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname);
     }
-
-    const hashParams = new URLSearchParams(
-      hash.substring(1),
-    );
-
-    const type = hashParams.get("type");
-    const token = hashParams.get("access_token");
-
-    if (type !== "recovery" || !token) {
-      setAccessToken(null);
-      setIsCheckingRecoveryLink(false);
-      return;
-    }
-
-    setAccessToken(token);
-    setIsCheckingRecoveryLink(false);
-
-    /*
-     * Remove the token from the visible browser URL while
-     * keeping it available in component state.
-     *
-     * The token is therefore not displayed in the UI and
-     * does not remain visible in the address bar.
-     */
-    window.history.replaceState(
-      null,
-      "",
-      window.location.pathname,
-    );
   }, []);
 
   /*
@@ -183,6 +315,7 @@ export default function ResetPasswordPage() {
       valid: requirement.isValid(password),
     }));
   }, [password]);
+
 
 // const handleResetPassword = async (data: ResetPasswordFormValues) => {
 //   if (isSubmitting) return;
@@ -261,6 +394,198 @@ export default function ResetPasswordPage() {
 //   }
 // };
 
+// const handleResetPassword = async (data: ResetPasswordFormValues) => {
+//   if (isSubmitting) return;
+
+//   setIsSubmitting(true);
+//   setResetError("");
+
+//   try {
+//     // 🔒 Secure internal fetch call proxy matching your server configuration
+//     const response = await fetch("/api/auth/reset-password", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         password: data.password,
+//       }),
+//     });
+
+//     const responseData = await response.json().catch(() => null);
+
+//     if (!response.ok) {
+//       const apiMessage = responseData?.error || "";
+//       const normalizedMessage = apiMessage.toLowerCase();
+
+//       // 💡 Preserve your custom error prioritization checks cleanly on the client layer
+//       if (
+//         normalizedMessage.includes("same") ||
+//         normalizedMessage.includes("old password") ||
+//         normalizedMessage.includes("different")
+//       ) {
+//         throw new Error(
+//           "Your new password must be different from your current password."
+//         );
+//       }
+
+//       if (response.status === 401 || response.status === 403 || !apiMessage) {
+//         throw new Error("Invalid or expired reset link.");
+//       }
+
+//       throw new Error(apiMessage || "Unable to update your password. Please try again.");
+//     }
+
+//     // Success workflow triggers completely unbothered
+//     setIsPasswordUpdated(true);
+//     setIsSuccess(true);        
+//     setCountdown(3);           
+
+//   } catch (error) {
+//     console.error("Reset password client processing error:", error);
+
+//     setResetError(
+//       error instanceof Error
+//         ? error.message
+//         : "Unable to update your password. Please try again."
+//     );
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
+//   /*
+//    * Recovery link is still being inspected.
+//    */
+//   if (isCheckingRecoveryLink) {
+//     return (
+//       <main className="min-h-screen w-full bg-[#F9F9FF]">
+//         {/* <TasklyHeader /> */}
+
+//         <div className="flex w-full justify-center px-4 pt-20">
+//           <div className="h-80 w-full max-w-112 animate-pulse rounded-[4px] bg-white" />
+//         </div>
+//       </main>
+//     );
+//   }
+
+//   /*
+//    * No valid recovery token.
+//    */
+//   if (!accessToken) {
+//     return (
+//       <main className="min-h-screen w-full bg-[#F9F9FF]">
+//         {/* <TasklyHeader /> */}
+
+//         <div className="flex w-full justify-center px-4 pt-20 max-xxs:pt-12">
+//           <section className="w-full max-w-112 rounded-[4px] bg-white px-7 py-7 shadow-[0px_8px_24px_rgba(4,27,60,0.04)] max-xxs:px-4">
+//             <h1 className="text-[18px] font-bold leading-6 text-slate-neutral-dark">
+//               Create a New Password
+//             </h1>
+
+//             <p className="mt-2 text-[9px] leading-3.5 text-slate-neutral-medium">
+//               Your password reset link is invalid or has
+//               expired.
+//             </p>
+
+//             <p className="mt-5 text-[10px] font-medium text-semantic-error">
+//               Invalid or expired reset link.
+//             </p>
+
+//             <button
+//               type="button"
+//               onClick={() => router.replace("/login")}
+//               className="
+//                 mt-6
+//                 flex
+//                 h-9.5
+//                 w-full
+//                 items-center
+//                 justify-center
+//                 rounded-[2px]
+//                 bg-[#0052CC]
+//                 text-[10px]
+//                 font-bold
+//                 text-white
+//                 shadow-[0px_4px_10px_rgba(0,61,155,0.18)]
+//                 transition-colors
+//                 hover:bg-primary
+//               "
+//             >
+//               Back to log in
+//             </button>
+//           </section>
+//         </div>
+//       </main>
+//     );
+//   }
+
+//   /*
+//    * Successful password update.
+//    */
+//   if (isPasswordUpdated) {
+//     return (
+//       <main className="min-h-screen w-full bg-[#F9F9FF]">
+//         {/* <TasklyHeader /> */}
+
+//         <div className="flex w-full justify-center px-4 pt-20 max-xxs:pt-12">
+//           <section className="w-full max-w-112 rounded-[4px] bg-white px-7 py-7 shadow-[0px_8px_24px_rgba(4,27,60,0.04)] max-xxs:px-4">
+//             <h1 className="text-[18px] font-bold leading-6 text-slate-neutral-dark">
+//               Create a New Password
+//             </h1>
+
+//             <div className="mt-5 rounded-[4px] bg-[#82F9BE]/30 px-4 py-4">
+//               <div className="flex items-start gap-2">
+//                 <SuccessIcon />
+
+//                 <p className="text-[9px] leading-4 text-[#075B3D]">
+//                   Your password has been updated
+//                   successfully. You can now log in
+//                 </p>
+//               </div>
+//             </div>
+
+//             <p className="mt-4 text-center text-[9px] text-slate-neutral-medium">
+//               Redirecting to login in{" "}
+//               <span className="font-bold text-primary">
+//                 {redirectSeconds}
+//               </span>{" "}
+//               {redirectSeconds === 1
+//                 ? "second"
+//                 : "seconds"}
+//               ...
+//             </p>
+
+//             <button
+//               type="button"
+//               onClick={() => router.replace("/login")}
+//               className="
+//                 mt-5
+//                 flex
+//                 h-9.5
+//                 w-full
+//                 items-center
+//                 justify-center
+//                 rounded-[2px]
+//                 bg-[#0052CC]
+//                 text-[10px]
+//                 font-bold
+//                 text-white
+//                 shadow-[0px_4px_10px_rgba(0,61,155,0.18)]
+//                 transition-colors
+//                 hover:bg-primary
+//               "
+//             >
+//               Back to log in
+//             </button>
+//           </section>
+//         </div>
+//       </main>
+//     );
+//   }
+
+
 const handleResetPassword = async (data: ResetPasswordFormValues) => {
   if (isSubmitting) return;
 
@@ -321,75 +646,13 @@ const handleResetPassword = async (data: ResetPasswordFormValues) => {
   }
 };
 
-
   /*
-   * Recovery link is still being inspected.
+   * 🔒 Removed the 'isCheckingRecoveryLink' skeleton screen loader condition!
+   * 🔒 Removed the '!accessToken' error layout condition block!
    */
-  if (isCheckingRecoveryLink) {
-    return (
-      <main className="min-h-screen w-full bg-[#F9F9FF]">
-        {/* <TasklyHeader /> */}
-
-        <div className="flex w-full justify-center px-4 pt-20">
-          <div className="h-80 w-full max-w-112 animate-pulse rounded-[4px] bg-white" />
-        </div>
-      </main>
-    );
-  }
 
   /*
-   * No valid recovery token.
-   */
-  if (!accessToken) {
-    return (
-      <main className="min-h-screen w-full bg-[#F9F9FF]">
-        {/* <TasklyHeader /> */}
-
-        <div className="flex w-full justify-center px-4 pt-20 max-xxs:pt-12">
-          <section className="w-full max-w-112 rounded-[4px] bg-white px-7 py-7 shadow-[0px_8px_24px_rgba(4,27,60,0.04)] max-xxs:px-4">
-            <h1 className="text-[18px] font-bold leading-6 text-slate-neutral-dark">
-              Create a New Password
-            </h1>
-
-            <p className="mt-2 text-[9px] leading-3.5 text-slate-neutral-medium">
-              Your password reset link is invalid or has
-              expired.
-            </p>
-
-            <p className="mt-5 text-[10px] font-medium text-semantic-error">
-              Invalid or expired reset link.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => router.replace("/login")}
-              className="
-                mt-6
-                flex
-                h-9.5
-                w-full
-                items-center
-                justify-center
-                rounded-[2px]
-                bg-[#0052CC]
-                text-[10px]
-                font-bold
-                text-white
-                shadow-[0px_4px_10px_rgba(0,61,155,0.18)]
-                transition-colors
-                hover:bg-primary
-              "
-            >
-              Back to log in
-            </button>
-          </section>
-        </div>
-      </main>
-    );
-  }
-
-  /*
-   * Successful password update.
+   * Successful password update conditional layout block (Kept completely intact)
    */
   if (isPasswordUpdated) {
     return (
