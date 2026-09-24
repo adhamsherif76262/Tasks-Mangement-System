@@ -57,16 +57,7 @@ export default function AddProjectPage() {
 
   const descriptionValue = watch("description") ?? "";
 
-  useEffect(() => {
-    const storedSession =
-      localStorage.getItem("auth_session") ??
-      sessionStorage.getItem("auth_session");
-
-    if (!storedSession) {
-      router.replace("/login");
-    }
-  }, [router]);
-
+  // 1. Standard toast dismissal timer hook (Left unchanged)
   useEffect(() => {
     if (!toast) return;
 
@@ -77,64 +68,36 @@ export default function AddProjectPage() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
+  // 2. Updated Project Creation Handler
   const handleCreateProject = async (data: ProjectFormValues) => {
     if (isSubmittingProject) return;
 
     setIsSubmittingProject(true);
 
     try {
-      if (!BASE_URL) {
-        throw new Error("NEXT_PUBLIC_BASE_URL is not configured.");
-      }
-
-      if (!API_KEY) {
-        throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
-      }
-
-      const storedSession =
-        localStorage.getItem("auth_session") ??
-        sessionStorage.getItem("auth_session");
-
-      if (!storedSession) {
-        router.replace("/login");
-        return;
-      }
-
-      let session: AuthSession;
-
-      try {
-        session = JSON.parse(storedSession);
-      } catch {
-        localStorage.removeItem("auth_session");
-        localStorage.removeItem("auth_session_expires");
-        sessionStorage.removeItem("auth_session");
-
-        router.replace("/login");
-        return;
-      }
-
-      if (!session.access_token) {
-        router.replace("/login");
-        return;
-      }
-
-      const response = await fetch(`${BASE_URL}/rest/v1/projects`, {
+      // 🔒 Route creation directly through your local secure proxy endpoint
+      const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
-          apikey: API_KEY,
-          Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name.trim(),
-          description: data.description?.trim() || "",
+          name: data.name,
+          description: data.description,
         }),
       });
 
+      const responseData = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error("Failed To Add New Project, Try Again Later");
+        if (response.status === 401) {
+          router.replace("/login");
+          return;
+        }
+        throw new Error(responseData?.error || "Creation rejected.");
       }
 
+      // Reset form controls on success
       reset({
         name: "",
         description: "",
@@ -144,9 +107,14 @@ export default function AddProjectPage() {
         type: "success",
         message: "Project created successfully",
       });
-    } catch (error) {
-      console.error("Create project error:", error);
 
+      // Clear layout routing state caches and bounce back to dashboard list
+      setTimeout(() => {
+        router.push("/projects");
+        router.refresh();
+      }, 2000);
+    } catch (error) {
+      console.error("Create project action execution failure:", error);
       setToast({
         type: "error",
         message: "Failed To Add New Project, Try Again Later",

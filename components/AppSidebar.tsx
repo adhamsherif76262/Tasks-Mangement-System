@@ -455,37 +455,71 @@ const isInsideProject = Boolean(activeProjectId);
     ]
   : [];
 
-  const handleLogout = async () => {
+  // const handleLogout = async () => {
+  //   if (isLoggingOut) return;
+
+  //   setIsLoggingOut(true);
+
+  //   try {
+  //     const storedSession = await getValidSession();
+
+  //     if (storedSession && BASE_URL && API_KEY) {
+  //       try {
+  //         if (storedSession.access_token) {
+  //           await fetch(`${BASE_URL}/auth/v1/logout`, {
+  //             method: "POST",
+  //             headers: {
+  //               apikey: API_KEY,
+  //               Authorization: `Bearer ${storedSession.access_token}`,
+  //               "Content-Type": "application/json",
+  //             },
+  //           });
+  //         }
+  //       } catch (error) {
+  //         console.error("Logout API error:", error);
+  //       }
+  //     }
+  //   } finally {
+
+  //     localStorage.removeItem("auth_session");
+  //     localStorage.removeItem("auth_session_expires");
+  //     sessionStorage.removeItem("auth_session");
+
+  //     router.replace("/login");
+  //   }
+  // };
+
+
+    const handleLogout = async () => {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
 
     try {
-      const storedSession = await getValidSession();
+      // 🔒 Fire a secure request to your server to invalidate cookies and revoke tokens
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (storedSession && BASE_URL && API_KEY) {
-        try {
-          if (storedSession.access_token) {
-            await fetch(`${BASE_URL}/auth/v1/logout`, {
-              method: "POST",
-              headers: {
-                apikey: API_KEY,
-                Authorization: `Bearer ${storedSession.access_token}`,
-                "Content-Type": "application/json",
-              },
-            });
-          }
-        } catch (error) {
-          console.error("Logout API error:", error);
-        }
+      if (!response.ok) {
+        console.error("Server-side logout proxy encountered an issue.");
       }
+    } catch (error) {
+      console.error("Logout request failure:", error);
     } finally {
-
+      // Ensure any client-side stray artifacts from legacy builds are flushed cleanly
       localStorage.removeItem("auth_session");
       localStorage.removeItem("auth_session_expires");
       sessionStorage.removeItem("auth_session");
 
+      setIsLoggingOut(false);
+      
+      // Kick user back to login gate and force router evaluation
       router.replace("/login");
+      router.refresh(); 
     }
   };
 
