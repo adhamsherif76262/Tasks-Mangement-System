@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter , usePathname } from "next/navigation";
-import { getValidSession } from "../app/lib/auth";
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
