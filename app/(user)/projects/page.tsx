@@ -173,7 +173,7 @@ export default function ProjectsPage() {
   const [sessionState, setSessionState] = useState<AuthSession | null>(null);
 
   // Core project fetching function (Accepts session explicitly to prevent race conditions)
-  const fetchProjects = useCallback(async (currentSession: AuthSession) => {
+  const fetchProjects = useCallback(async (currentSession?: AuthSession) => {
     setPageState("loading");
 
     try {
