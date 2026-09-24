@@ -6,7 +6,6 @@ export async function GET() {
   try {
     const cookieStore = await cookies()
 
-    // 1. Initialize the Server Client using your middleware cookie engine
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_BASE_URL!,
       process.env.NEXT_PUBLIC_SECRET_KEYS!,
@@ -29,14 +28,12 @@ export async function GET() {
       }
     )
 
-    // 2. Safely read user session metadata on the server side
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized session' }, { status: 401 })
     }
 
-    // 3. Return only the safe user fields to the client
     return NextResponse.json({
       id: user.id,
       email: user.email,

@@ -1,144 +1,4 @@
-// "use client";
-
-// import { useCallback, useEffect, useState } from "react";
-// import { useRouter, usePathname } from "next/navigation";
-// import { getValidSession, AuthSession } from "../../lib/auth";
-// import Link from 'next/link';
-// import ProjectCard from "@/components/ProjectCard";
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-// const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
-
-// interface Project {
-//   id: string;
-//   name: string;
-//   description: string | null;
-//   created_at: string;
-// }
-
-// type PageState = "loading" | "success" | "empty" | "error";
-
-// export default function ProjectsPage() {
-//   const router = useRouter();
-//   const pathname = usePathname();
-//   const [projects, setProjects] = useState<Project[]>([]);
-//   const [pageState, setPageState] = useState<PageState>("loading");
-//   const [sessionState, setSessionState] = useState<AuthSession | null>(null);
-
-//   const fetchProjects = useCallback(async (currentSession?: AuthSession) => {
-//     setPageState("loading");
-
-//     try {
-//       if (!BASE_URL) {
-//         throw new Error("NEXT_PUBLIC_BASE_URL is not configured.");
-//       }
-
-//       if (!API_KEY) {
-//         throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
-//       }
-
-//       if (!currentSession?.access_token) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       const response = await fetch(
-//         `${BASE_URL}/rest/v1/rpc/get_projects`,
-//         {
-//           method: "GET",
-//           headers: {
-//             apikey: API_KEY,
-//             Authorization: `Bearer ${currentSession.access_token}`,
-//             "Content-Type": "application/json",
-//           },
-//         },
-//       );
-
-//       if (!response.ok) {
-//         throw new Error("Failed to fetch projects.");
-//       }
-
-//       const result = await response.json();
-
-//       if (!Array.isArray(result)) {
-//         throw new Error("Invalid projects response.");
-//       }
-
-//       setProjects(result);
-//       setPageState(result.length === 0 ? "empty" : "success");
-//     } catch (error) {
-//       console.error("Get projects error:", error);
-//       setProjects([]);
-//       setPageState("error");
-//     }
-//   }, [router]);
-
-//   useEffect(() => {
-//     let mounted = true;
-
-//     const initializePage = async () => {
-//       const session = await getValidSession();
-
-//       if (!mounted) return;
-
-//       if (!session || !session.access_token) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       setSessionState(session);
-
-//       await fetchProjects(session);
-//     };
-
-//     initializePage();
-
-//     return () => {
-//       mounted = false;
-//     };
-//   }, [fetchProjects, router]);
-
-//   const handleProjectClick = (projectId: string) => {
-//     router.push(`/projects/${projectId}/epics`);
-//   };
-
-//   const handleCreateProject = () => {
-//     router.push("/projects/add");
-//   };
-
-//   return (
-//     <div className="flex min-h-screen w-full bg-[#F9F9FF]">
-
-
-//         <main className="flex-1 px-5 py-6 max-md:px-4 max-xxs:px-3">
-//           {pageState === "loading" && <ProjectsLoadingState />}
-
-//           {pageState === "success" && (
-//             <ProjectsList
-//               projects={projects}
-//               onProjectClick={handleProjectClick}
-//               onCreateProject={handleCreateProject}
-//             />
-//           )}
-
-//           {pageState === "empty" && (
-//             <ProjectsEmptyState
-//               onCreateProject={handleCreateProject}
-//             />
-//           )}
-
-//           {pageState === "error" && (
-//             <ProjectsErrorState onRetry={fetchProjects} />
-//           )}
-//         </main>
-
-//         {/* <MobileBottomNav /> */}
-//     </div>
-//   );
-// }
-
 "use client";
-
 
 interface ProjectsListProps {
   projects: Project[];
@@ -266,7 +126,6 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [pageState, setPageState] = useState<PageState>("loading");
 
-  // Simplified fetching function pointing to your secure internal BFF API route
   const fetchProjects = useCallback(async () => {
     setPageState("loading");
 
@@ -301,8 +160,6 @@ export default function ProjectsPage() {
     }
   }, [router]);
 
-  // Clean initialization phase: Since Middleware handles path protection, 
-  // we trigger the data fetch immediately upon client hydration.
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
@@ -341,8 +198,6 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
-// ... Keep your PlusIcon, ProjectsListProps, and ProjectsList definitions below exactly as they were!
 
 interface ProjectCardProps {
   project: Project;

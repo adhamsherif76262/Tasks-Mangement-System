@@ -2,7 +2,6 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-// Helper to initialize Supabase server client inside API routes
 async function getSupabaseServerClient() {
   const cookieStore = await cookies()
   return createServerClient(
@@ -26,7 +25,6 @@ async function getSupabaseServerClient() {
   )
 }
 
-// 1. GET HANDLER: Pull down details for a specific project
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -42,7 +40,6 @@ export async function GET(
 
     const sessionToken = (await supabase.auth.getSession()).data.session?.access_token
 
-    // Call Supabase RPC or REST endpoint passing individual ID criteria
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/rpc/get_projects?id=eq.${id}`,
       {
@@ -67,7 +64,6 @@ export async function GET(
   }
 }
 
-// 2. PATCH HANDLER: Update a specific project description or name
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

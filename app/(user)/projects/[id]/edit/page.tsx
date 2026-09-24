@@ -68,210 +68,6 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
 
   const descriptionValue = watch("description") ?? "";
 
-//   useEffect(() => {
-//     const storedSession =
-//       localStorage.getItem("auth_session") ??
-//       sessionStorage.getItem("auth_session");
-
-//     if (!storedSession) {
-//       router.replace("/login");
-//     }
-//   }, [router]);
-
-//   useEffect(() => {
-//   const fetchProject = async () => {
-//     if (!activeProjectId) {
-//       setIsLoadingProject(false);
-
-//       setToast({
-//         type: "error",
-//         message: "Unable to determine the selected project.",
-//       });
-
-//       return;
-//     }
-
-//     try {
-//       if (!BASE_URL) {
-//         throw new Error(
-//           "NEXT_PUBLIC_BASE_URL is not configured.",
-//         );
-//       }
-
-//       if (!API_KEY) {
-//         throw new Error(
-//           "NEXT_PUBLIC_SECRET_KEYS is not configured.",
-//         );
-//       }
-
-//       const storedSession =
-//         localStorage.getItem("auth_session") ??
-//         sessionStorage.getItem("auth_session");
-
-//       if (!storedSession) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       let session: AuthSession;
-
-//       try {
-//         session = JSON.parse(storedSession);
-//       } catch {
-//         localStorage.removeItem("auth_session");
-//         localStorage.removeItem("auth_session_expires");
-//         sessionStorage.removeItem("auth_session");
-
-//         router.replace("/login");
-//         return;
-//       }
-
-//       if (!session.access_token) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       const response = await fetch(
-//         `${BASE_URL}/rest/v1/rpc/get_projects?id=eq.${activeProjectId}`,
-//         {
-//           method: "GET",
-//           headers: {
-//             apikey: API_KEY,
-//             Authorization: `Bearer ${session.access_token}`,
-//             "Content-Type": "application/json",
-//           },
-//         },
-//       );
-
-//       const responseData = await response.json().catch(() => null);
-
-//       if (!response.ok) {
-//         const errorMessage =
-//           responseData?.message ||
-//           responseData?.error ||
-//           responseData?.details ||
-//           "Failed to retrieve project details.";
-
-//         throw new Error(errorMessage);
-//       }
-
-//       const project: Project | undefined =
-//         Array.isArray(responseData)
-//           ? responseData[0]
-//           : responseData;
-
-//       if (!project) {
-//         throw new Error(
-//           "The selected project could not be found.",
-//         );
-//       }
-
-//       reset({
-//         name: project.name ?? "",
-//         description: project.description ?? "",
-//       });
-//     } catch (error) {
-//       console.error("Get project error:", error);
-
-//       setToast({
-//         type: "error",
-//         message:
-//           error instanceof Error
-//             ? error.message
-//             : "Failed to retrieve project details.",
-//       });
-//     } finally {
-//       setIsLoadingProject(false);
-//     }
-//   };
-
-//   fetchProject();
-// }, [activeProjectId, reset, router]);
-
-//   useEffect(() => {
-//     if (!toast) return;
-
-//     const timeout = window.setTimeout(() => {
-//       setToast(null);
-//     }, 4000);
-
-//     return () => window.clearTimeout(timeout);
-//   }, [toast]);
-
-//   const handleEditProject = async (data: ProjectFormValues) => {
-//     if (isSubmittingProject) return;
-
-//     setIsSubmittingProject(true);
-
-//     try {
-//       if (!BASE_URL) {
-//         throw new Error("NEXT_PUBLIC_BASE_URL is not configured.");
-//       }
-
-//       if (!API_KEY) {
-//         throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
-//       }
-
-//       const storedSession =
-//         localStorage.getItem("auth_session") ??
-//         sessionStorage.getItem("auth_session");
-
-//       if (!storedSession) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       let session: AuthSession;
-
-//       try {
-//         session = JSON.parse(storedSession);
-//       } catch {
-//         localStorage.removeItem("auth_session");
-//         localStorage.removeItem("auth_session_expires");
-//         sessionStorage.removeItem("auth_session");
-
-//         router.replace("/login");
-//         return;
-//       }
-
-//       if (!session.access_token) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       const response = await fetch(`${BASE_URL}/rest/v1/projects?id=eq.${activeProjectId}`, {
-//         method: "PATCH",
-//         headers: {
-//           apikey: API_KEY,
-//           Authorization: `Bearer ${session.access_token}`,
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           name: data.name.trim(),
-//           description: data.description?.trim() || "",
-//         }),
-//       });
-
-//       setToast({
-//         type: "success",
-//         message: "Project updated successfully",
-//       });
-//       setTimeout(() => {
-//         router.push("/projects")
-//       }, 4000);
-//     } catch (error) {
-//       console.error("Update project error:", error);
-
-//       setToast({
-//         type: "error",
-//         message: `Failed to update project: ${error}`,
-//       });
-//     } finally {
-//       setIsSubmittingProject(false);
-//     }
-//   };
-
-  // 1. Unified Single Fetch Effect (Completely stripped of storage checks)
   useEffect(() => {
     const fetchProject = async () => {
       if (!activeProjectId) {
@@ -284,7 +80,6 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
       }
 
       try {
-        // 🔒 Hit your new secure dynamic internal proxy endpoint
         const response = await fetch(`/api/projects/${activeProjectId}`, {
           method: "GET",
           headers: {
@@ -308,7 +103,6 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
           throw new Error("The selected project could not be found.");
         }
 
-        // Hydrate your React Hook Form fields
         reset({
           name: project.name ?? "",
           description: project.description ?? "",
@@ -327,7 +121,6 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
     fetchProject();
   }, [activeProjectId, reset, router]);
 
-  // 2. Standard toast dismissal timer hook (Left unchanged)
   useEffect(() => {
     if (!toast) return;
 
@@ -338,14 +131,12 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  // 3. Updated Project Update Submission Handler
   const handleEditProject = async (data: ProjectFormValues) => {
     if (isSubmittingProject) return;
 
     setIsSubmittingProject(true);
 
     try {
-      // 🔒 Securely submit form data down to the proxy API route handler
       const response = await fetch(`/api/projects/${activeProjectId}`, {
         method: "PATCH",
         headers: {
@@ -374,7 +165,7 @@ const activeProjectId = projectRouteMatch?.[1] ?? null;
 
       setTimeout(() => {
         router.push("/projects");
-        router.refresh(); // Sync up workspace card fields across layout layouts
+        router.refresh();
       }, 4000);
     } catch (error) {
       console.error("Update project execution mismatch error:", error);

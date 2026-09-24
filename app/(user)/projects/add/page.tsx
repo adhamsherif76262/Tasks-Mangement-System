@@ -57,7 +57,6 @@ export default function AddProjectPage() {
 
   const descriptionValue = watch("description") ?? "";
 
-  // 1. Standard toast dismissal timer hook (Left unchanged)
   useEffect(() => {
     if (!toast) return;
 
@@ -68,14 +67,12 @@ export default function AddProjectPage() {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  // 2. Updated Project Creation Handler
   const handleCreateProject = async (data: ProjectFormValues) => {
     if (isSubmittingProject) return;
 
     setIsSubmittingProject(true);
 
     try {
-      // 🔒 Route creation directly through your local secure proxy endpoint
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
@@ -97,7 +94,6 @@ export default function AddProjectPage() {
         throw new Error(responseData?.error || "Creation rejected.");
       }
 
-      // Reset form controls on success
       reset({
         name: "",
         description: "",
@@ -108,7 +104,6 @@ export default function AddProjectPage() {
         message: "Project created successfully",
       });
 
-      // Clear layout routing state caches and bounce back to dashboard list
       setTimeout(() => {
         router.push("/projects");
         router.refresh();

@@ -7,7 +7,6 @@ export async function POST(request: Request) {
     const { email } = await request.json()
     const cookieStore = await cookies()
 
-    // Initialize the transient Supabase instance
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_BASE_URL!,
       process.env.NEXT_PUBLIC_SECRET_KEYS!,
@@ -23,16 +22,12 @@ export async function POST(request: Request) {
       }
     )
 
-    // Build the dynamic destination return path cleanly on the server side
     const originHost = request.headers.get('origin') || request.headers.get('host') || ''
     const protocol = process.env.NODE_ENV === 'production' ? 'https://' : 'http://'
     const cleanOrigin = originHost.startsWith('http') ? originHost : `${protocol}${originHost}`
     
-    // const redirectToUrl = `${cleanOrigin}/reset-password`
-// Open app/api/auth/recover/route.ts and update this line:
 const redirectToUrl = `${cleanOrigin}/api/auth/callback?next=/reset-password`
 
-    // Execute password reset lookup sequence
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: redirectToUrl,
     })

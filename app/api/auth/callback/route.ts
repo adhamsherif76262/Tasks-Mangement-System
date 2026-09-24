@@ -19,7 +19,7 @@ export async function GET(request: Request) {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, {
                 ...options,
-                httpOnly: true, // 🔒 Safe from XSS token extraction
+                httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
               })
@@ -29,17 +29,14 @@ export async function GET(request: Request) {
       }
     )
 
-    // 🔄 Server-side swap: Exchange the single-use code for secure session cookies
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      // Clean redirect to your frontend page (/reset-password)
       return NextResponse.redirect(`${origin}${next}`)
     }
     
     console.error('Code exchange failed:', error.message)
   }
 
-  // Fallback to error gate or login page if the code is invalid or missing
   return NextResponse.redirect(`${origin}/login?error=invalid_recovery_link`)
 }

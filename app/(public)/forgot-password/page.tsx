@@ -112,132 +112,7 @@ export default function ForgotPasswordPage() {
       remainingSecondsPart,
     ).padStart(2, "0")}`;
   };
-
-//   const sendResetEmail = async (email: string) => {
-//   if (!BASE_URL) {
-//     throw new Error(
-//       "Password reset is temporarily unavailable.",
-//     );
-//   }
-
-//   if (!API_KEY) {
-//     throw new Error(
-//       "Password reset is temporarily unavailable.",
-//     );
-//   }
-
-//   const response = await fetch(
-//     `${BASE_URL}/auth/v1/recover`,
-//     {
-//       method: "POST",
-//       headers: {
-//         apikey: API_KEY,
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({
-//         email,
-//         redirect_to: `${window.location.origin}/reset-password`,
-//       }),
-//     },
-//   );
-
-//   if (!response.ok) {
-//     throw new Error(
-//       "We couldn't send the reset link right now. Please try again later.",
-//     );
-//   }
-// };
-//   /*
-//    * Initial password reset request.
-//    */
-//   const handleForgotPassword = async (
-//     data: ForgotPasswordFormValues,
-//   ) => {
-//     if (isSubmitting) return;
-
-//     setIsSubmitting(true);
-//     setRequestError("");
-
-//     try {
-//       await sendResetEmail(data.email.trim());
-
-//       /*
-//        * Always show the same success state regardless
-//        * of whether the email belongs to an account.
-//        */
-//       setRequestState("success");
-
-//       /*
-//        * The initial request does NOT count as a resend.
-//        */
-//       startResendTimer();
-//     } catch (error) {
-//       console.error("Forgot password error:", error);
-
-//       setRequestState("error");
-
-//       setRequestError(
-//         error instanceof Error
-//           ? error.message
-//           : "We couldn't send the reset link right now. Please try again later.",
-//       );
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-//   /*
-//    * Resend password reset email.
-//    */
-//   const handleResend = async () => {
-//     if (isResendDisabled || isSubmitting) return;
-
-//     const email = getValues("email").trim();
-
-//     if (!email) {
-//       setRequestState("error");
-//       setRequestError(
-//         "Please enter your email address first.",
-//       );
-//       return;
-//     }
-
-//     setIsSubmitting(true);
-//     setRequestError("");
-
-//     try {
-//       await sendResetEmail(email);
-
-//       /*
-//        * This is a successful resend, so increment
-//        * the resend attempt counter.
-//        */
-//       setResendAttempts((previous) => previous + 1);
-
-//       setRequestState("success");
-
-//       startResendTimer();
-//     } catch (error) {
-//       console.error("Resend password reset error:", error);
-
-//       setRequestState("error");
-
-//       setRequestError(
-//         error instanceof Error
-//           ? error.message
-//           : "We couldn't resend the reset link right now. Please try again later.",
-//       );
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
-
-
-  // ... Keep all of your useForm instances, timer loops, and countdown helpers exactly as you wrote them!
-
   const sendResetEmail = async (email: string) => {
-    // 🔒 Direct tracking variables have been stripped out. 
-    // We seamlessly query our unified, isolated internal proxy endpoint
     const response = await fetch("/api/auth/recover", {
       method: "POST",
       headers: {
@@ -315,8 +190,6 @@ export default function ForgotPasswordPage() {
       setIsSubmitting(false);
     }
   };
-
-  // ... Your return layout HTML/JSX content follows exactly as you have it written!
 
   const resendAttemptsRemaining =
     MAX_RESEND_ATTEMPTS - resendAttempts;
