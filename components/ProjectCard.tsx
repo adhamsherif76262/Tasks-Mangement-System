@@ -114,13 +114,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     >
       {/* Header Area */}
       <div className="flex justify-between items-center">
-        <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark max-w-[85%]">
+        <h2 className="truncate text-title-md font-semibold text-slate-neutral-dark leading-4">
           {project.name}
         </h2>
       </div>
 
       {/* Description */}
-      <p className="mt-2 line-clamp-3 min-h-12 text-[9px] leading-4 text-slate-neutral-medium">
+      <p className="mt-4 line-clamp-3 min-h-12 text-body-md leading-relaxed text-slate-neutral-medium">
         {project.description || "No description provided."}
       </p>
 
@@ -168,10 +168,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
       {/* Footer Meta Area */}
       <div className="mt-4 flex items-center justify-between border-t border-[#F0F1F6] pt-2.5">
-        <span className="text-[7px] font-bold uppercase tracking-[0.05em] text-slate-neutral-medium">
+        <span className="text-label-xs font-bold uppercase tracking-[0.05em] text-project-cart-createdAt">
           Created At
         </span>
-        <span className="text-[8px] text-slate-neutral-dark">
+        <span className="text-ghost-button text-project-cart-date">
           {formatCreatedAt(project.created_at)}
         </span>
       </div>

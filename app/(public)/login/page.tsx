@@ -9,12 +9,13 @@ import PublicNavbar from "@/components/PublicNavbar";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/Checkbox";
-
 import {
   loginSchema,
   type LoginFormData,
-} from "@/schemas/loginSchema";
-import { signUpSchema } from "@/schemas/signUpSchema";
+} from "@/app/(user)/schemas/loginSchema";
+
+
+import { signUpSchema } from "@/app/(user)/schemas/signUpSchema";
 
 interface AuthResponse {
   access_token: string;

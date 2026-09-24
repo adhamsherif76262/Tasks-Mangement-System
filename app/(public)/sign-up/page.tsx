@@ -6,7 +6,7 @@ import Image from "next/image"; // Imported to handle checking status icons
 import {
   signUpSchema,
   type SignUpFormData,
-} from "@/schemas/signUpSchema";
+} from "@/app/(user)/schemas/signUpSchema";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/Input";
 import { useState } from "react";
