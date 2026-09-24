@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Imported to handle checking status icons
+import Image from "next/image";
 import {
   signUpSchema,
   type SignUpFormData,

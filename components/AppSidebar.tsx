@@ -402,15 +402,6 @@ function ProjectLinkIcon({
   }
 }
 
-
-// interface AuthSession {
-//   access_token: string;
-//   token_type: string;
-//   expires_in: number;
-//   expires_at: number;
-//   refresh_token: string;
-// }
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
 
@@ -471,13 +462,9 @@ const isInsideProject = Boolean(activeProjectId);
 
     try {
       const storedSession = await getValidSession();
-        // localStorage.getItem("auth_session") ??
-        // sessionStorage.getItem("auth_session");
 
       if (storedSession && BASE_URL && API_KEY) {
         try {
-          // const session: AuthSession = JSON.parse(storedSession);
-
           if (storedSession.access_token) {
             await fetch(`${BASE_URL}/auth/v1/logout`, {
               method: "POST",
@@ -493,8 +480,7 @@ const isInsideProject = Boolean(activeProjectId);
         }
       }
     } finally {
-      // Always clear the local authentication state,
-      // even if the API request fails.
+
       localStorage.removeItem("auth_session");
       localStorage.removeItem("auth_session_expires");
       sessionStorage.removeItem("auth_session");

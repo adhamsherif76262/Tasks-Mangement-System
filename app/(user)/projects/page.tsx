@@ -1,150 +1,3 @@
-// "use client";
-
-// import { useCallback, useEffect, useRef, useState } from "react";
-// import { useRouter, usePathname } from "next/navigation";
-// import { getValidSession } from "../../lib/auth";
-// import Link from 'next/link';
-// import ProjectCard from "@/components/ProjectCard";
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-// const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
-
-// interface AuthSession {
-//   access_token: string;
-// }
-
-// interface Project {
-//   id: string;
-//   name: string;
-//   description: string | null;
-//   created_at: string;
-// }
-
-// type PageState = "loading" | "success" | "empty" | "error";
-
-
-
-
-// export default function ProjectsPage() {
-
-  
-//   const router = useRouter();
-//   const pathname = usePathname();
-//   const [projects, setProjects] = useState<Project[]>([]);
-//   const [pageState, setPageState] = useState<PageState>("loading");
-//   const [sessionState, setsessionState] = useState(null);
-
-//   const projectRouteMatch = pathname.match(
-//   /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
-// );
-
-// const activeProjectId = projectRouteMatch?.[1] ?? null;
-// const activeProjectSection = projectRouteMatch?.[2] ?? null;
-
-// const isInsideProject = Boolean(activeProjectId);
-
-// useEffect(() => {
-//   let mounted = true;
-
-//   const checkSession = async () => {
-//     const session = await getValidSession();
-//   setsessionState(session)
-//     if (!sessionState && mounted) {
-//       router.replace("/login");
-//     }
-//   };
-
-//   checkSession();
-
-//   return () => {
-//     mounted = false;
-//   };
-// }, []);
-
-//   const fetchProjects = useCallback(async () => {
-//     setPageState("loading");
-
-//     try {
-//       if (!BASE_URL) {
-//         throw new Error("NEXT_PUBLIC_BASE_URL is not configured.");
-//       }
-
-//       if (!API_KEY) {
-//         throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
-//       }
-
-//       // const storedSession =
-//       //   localStorage.getItem("auth_session") ??
-//       //   sessionStorage.getItem("auth_session");
-
-//       // if (!storedSession) {
-//       //   router.replace("/login");
-//       //   return;
-//       // }
-
-//       // let session: AuthSession;
-
-//       // try {
-//       //   session = JSON.parse(storedSession);
-//       // } catch {
-//       //   localStorage.removeItem("auth_session");
-//       //   localStorage.removeItem("auth_session_expires");
-//       //   sessionStorage.removeItem("auth_session");
-
-//       //   router.replace("/login");
-//       //   return;
-//       // }
-
-//       if (!sessionState.access_token) {
-//         router.replace("/login");
-//         return;
-//       }
-
-//       const response = await fetch(
-//         `${BASE_URL}/rest/v1/rpc/get_projects`,
-//         {
-//           method: "GET",
-//           headers: {
-//             apikey: API_KEY,
-//             Authorization: `Bearer ${sessionState.access_token}`,
-//             "Content-Type": "application/json",
-//           },
-//         },
-//       );
-
-//       if (!response.ok) {
-//         throw new Error("Failed to fetch projects.");
-//       }
-
-//       const result = await response.json();
-
-//       if (!Array.isArray(result)) {
-//         throw new Error("Invalid projects response.");
-//       }
-
-//       setProjects(result);
-//       setPageState(result.length === 0 ? "empty" : "success");
-//     } catch (error) {
-//       console.error("Get projects error:", error);
-
-//       setProjects([]);
-//       setPageState("error");
-//     }
-//   }, [router]);
-
-//   useEffect(() => {
-//     // eslint-disable-next-line react-hooks/set-state-in-effect
-//     fetchProjects();
-//   }, [fetchProjects]);
-
-//   const handleProjectClick = (projectId: string) => {
-//     router.push(`/projects/${projectId}/epics`);
-//   };
-
-//   const handleCreateProject = () => {
-//     router.push("/projects/add");
-//   };
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -172,7 +25,6 @@ export default function ProjectsPage() {
   const [pageState, setPageState] = useState<PageState>("loading");
   const [sessionState, setSessionState] = useState<AuthSession | null>(null);
 
-  // Core project fetching function (Accepts session explicitly to prevent race conditions)
   const fetchProjects = useCallback(async (currentSession?: AuthSession) => {
     setPageState("loading");
 
@@ -221,7 +73,6 @@ export default function ProjectsPage() {
     }
   }, [router]);
 
-  // Combined Master Lifecycle Setup Effect
   useEffect(() => {
     let mounted = true;
 
@@ -235,10 +86,8 @@ export default function ProjectsPage() {
         return;
       }
 
-      // 1. Store the valid session cleanly into state
       setSessionState(session);
 
-      // 2. Fetch projects immediately using the freshly fetched session snapshot
       await fetchProjects(session);
     };
 
@@ -256,9 +105,6 @@ export default function ProjectsPage() {
   const handleCreateProject = () => {
     router.push("/projects/add");
   };
-
-  // ... Your return JSX goes down here
-
 
   return (
     <div className="flex min-h-screen w-full bg-[#F9F9FF]">
@@ -362,7 +208,6 @@ function ProjectsList({
           <ProjectCard
             key={project.id}
             project={project}
-            // onClick={() => router.push(`/projects/${projectId}/epics`)}
           />
         ))}
 
@@ -401,58 +246,6 @@ interface ProjectCardProps {
   project: Project;
   onClick: () => void;
 }
-
-// function ProjectCard({ project, onClick }: ProjectCardProps) {
-//   return (
-//     <button
-//       type="button"
-//       onClick={onClick}
-//       className="group z-50 flex min-h-37.5 w-full flex-col rounded-[5px] bg-white px-4 py-4 text-left transition-shadow hover:shadow-[0_4px_15px_rgba(4,27,60,0.08)]"
-//     >
-//       <div className="flex justify-between  align-center">
-//         <h2 className="truncate text-[12px] font-semibold leading-4 text-slate-neutral-dark">
-//           {project.name}
-//         </h2>
-//         <Link className=" z-100 hover:text:black text-[12px] font-black px-3 rounded-md py-1 bg-[#0052CC]" href={`/projects/${project.id}/edit`}>
-//           Edit
-//         </Link>
-//       </div>
-
-//       <p className="mt-2 line-clamp-3 min-h-12 text-[9px] leading-4 text-slate-neutral-medium">
-//         {project.description || "No description provided."}
-//       </p>
-
-//       <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-//         <div className="flex items-center gap-5">
-//           <ProjectCardLink
-//             icon={<EpicsIcon />}
-//             label="Epics"
-//           />
-
-//           <ProjectCardLink
-//             icon={<TasksIcon />}
-//             label="Tasks"
-//           />
-
-//           <ProjectCardLink
-//             icon={<MembersIcon />}
-//             label="Members"
-//           />
-//         </div>
-//       </div>
-
-//       <div className="mt-4 flex items-center justify-between border-t border-[#F0F1F6] pt-2.5">
-//         <span className="text-[7px] font-bold uppercase tracking-[0.05em] text-slate-neutral-medium">
-//           Created At
-//         </span>
-
-//         <span className="text-[8px] text-slate-neutral-dark">
-//           {formatCreatedAt(project.created_at)}
-//         </span>
-//       </div>
-//     </button>
-//   );
-// }
 
 interface ProjectCardLinkProps {
   icon: React.ReactNode;
@@ -639,80 +432,6 @@ function PaginationButton({
     </button>
   );
 }
-
-// function MobileBottomNav() {
-//   const router = useRouter();
-//   const pathname = usePathname();
-//   const projectRouteMatch = pathname.match(
-//   /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
-// );
-
-// const activeProjectId = projectRouteMatch?.[1] ?? null;
-//   return (
-//     <nav className="fixed bottom-0 left-0 z-20 flex h-11 w-full items-center justify-around border-t border-[#E2E5EE] bg-[#F1F3FF] xlg:hidden">
-//       <MobileNavItem
-//         label="Epics"
-//         icon={<EpicsIcon />}
-//         onClick={() => router.push(`/${activeProjectId}/epics`)}
-//       />
-
-//       <MobileNavItem
-//         label="Tasks"
-//         icon={<TasksIcon />}
-//         onClick={() => router.push("/tasks")}
-//       />
-
-//       <MobileNavItem
-//         label="Projects"
-//         icon={<FolderIcon />}
-//         active
-//         onClick={() => router.push("/projects")}
-//         />
-
-//       <MobileNavItem
-//         label="Members"
-//         icon={<MembersIcon />}
-//         onClick={() => router.push("/members")}
-//       />
-
-//       <MobileNavItem
-//         label="Details"
-//         icon={<DetailsIcon />}
-//         onClick={() => router.push("/edit")}
-//       />
-//     </nav>
-//   );
-// }
-
-// interface MobileNavItemProps {
-//   label: string;
-//   icon: React.ReactNode;
-//   active?: boolean;
-//   onClick: () => void;
-// }
-
-// function MobileNavItem({
-//   label,
-//   icon,
-//   active = false,
-//   onClick,
-// }: MobileNavItemProps) {
-//   return (
-//     <button
-//       type="button"
-//       onClick={onClick}
-//       className={`flex h-full min-w-13 flex-col items-center justify-center gap-0.5 ${
-//         active ? "text-primary" : "text-slate-neutral-medium"
-//       }`}
-//     >
-//       {icon}
-
-//       <span className="text-[6px] font-medium">
-//         {label}
-//       </span>
-//     </button>
-//   );
-// }
 
 function FolderIcon({ size = 17 }: { size?: number }) {
   return (

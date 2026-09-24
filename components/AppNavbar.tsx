@@ -90,23 +90,6 @@ export default function AppNavbar({
             "NEXT_PUBLIC_SECRET_KEYS is not configured.",
           );
         }
-
-        // const storedSession = await getValidSession();
-        //   // localStorage.getItem("auth_session") ??
-        //   // sessionStorage.getItem("auth_session");
-
-        // if (!storedSession) {
-        //   console.error("No authenticated session found.");
-        //   return;
-        // }
-
-        // const session: AuthSession = JSON.parse(storedSession);
-
-        // if (!session.access_token) {
-        //   console.error("No access token found.");
-        //   return;
-        // }
-
         const session = await getValidSession();
 
 if (!session) {
