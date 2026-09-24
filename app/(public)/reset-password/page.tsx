@@ -184,94 +184,28 @@ export default function ResetPasswordPage() {
     }));
   }, [password]);
 
-const handleResetPassword = async (data: ResetPasswordFormValues) => {
-  if (isSubmitting) return;
-
-  if (!accessToken) {
-    setResetError("Invalid or expired reset link.");
-    return;
-  }
-
-  if (!BASE_URL || !API_KEY) {
-    setResetError("Password reset is temporarily unavailable. Please try again later.");
-    return;
-  }
-
-  setIsSubmitting(true);
-  setResetError("");
-
-  try {
-    const response = await fetch(`${BASE_URL}/auth/v1/user`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        apikey: API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        password: data.password,
-      }),
-    });
-
-    const responseData = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      const apiMessage =
-        responseData?.msg ||
-        responseData?.message ||
-        responseData?.error_description ||
-        responseData?.error;
-
-      const normalizedMessage = apiMessage?.toString().toLowerCase() || "";
-      if (
-        normalizedMessage.includes("same") ||
-        normalizedMessage.includes("old password") ||
-        normalizedMessage.includes("different")
-      ) {
-        throw new Error(
-          "Your new password must be different from your current password."
-        );
-      }
-
-      if (
-        response.status === 401 ||
-        response.status === 403 ||
-        !apiMessage
-      ) {
-        throw new Error("Invalid or expired reset link.");
-      }
-
-      throw new Error(apiMessage);
-    }
-
-    setIsPasswordUpdated(true);
-    setIsSuccess(true);        
-    setCountdown(3);           
-
-  } catch (error) {
-    console.error("Reset password error:", error);
-
-    setResetError(
-      error instanceof Error
-        ? error.message
-        : "Unable to update your password. Please try again."
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
 // const handleResetPassword = async (data: ResetPasswordFormValues) => {
 //   if (isSubmitting) return;
+
+//   if (!accessToken) {
+//     setResetError("Invalid or expired reset link.");
+//     return;
+//   }
+
+//   if (!BASE_URL || !API_KEY) {
+//     setResetError("Password reset is temporarily unavailable. Please try again later.");
+//     return;
+//   }
 
 //   setIsSubmitting(true);
 //   setResetError("");
 
 //   try {
-//     // 🔒 Secure internal fetch call proxy matching your server configuration
-//     const response = await fetch("/api/auth/reset-password", {
-//       method: "POST",
+//     const response = await fetch(`${BASE_URL}/auth/v1/user`, {
+//       method: "PUT",
 //       headers: {
+//         Authorization: `Bearer ${accessToken}`,
+//         apikey: API_KEY,
 //         "Content-Type": "application/json",
 //       },
 //       body: JSON.stringify({
@@ -282,10 +216,13 @@ const handleResetPassword = async (data: ResetPasswordFormValues) => {
 //     const responseData = await response.json().catch(() => null);
 
 //     if (!response.ok) {
-//       const apiMessage = responseData?.error || "";
-//       const normalizedMessage = apiMessage.toLowerCase();
+//       const apiMessage =
+//         responseData?.msg ||
+//         responseData?.message ||
+//         responseData?.error_description ||
+//         responseData?.error;
 
-//       // 💡 Preserve your custom error prioritization checks cleanly on the client layer
+//       const normalizedMessage = apiMessage?.toString().toLowerCase() || "";
 //       if (
 //         normalizedMessage.includes("same") ||
 //         normalizedMessage.includes("old password") ||
@@ -296,20 +233,23 @@ const handleResetPassword = async (data: ResetPasswordFormValues) => {
 //         );
 //       }
 
-//       if (response.status === 401 || response.status === 403 || !apiMessage) {
+//       if (
+//         response.status === 401 ||
+//         response.status === 403 ||
+//         !apiMessage
+//       ) {
 //         throw new Error("Invalid or expired reset link.");
 //       }
 
-//       throw new Error(apiMessage || "Unable to update your password. Please try again.");
+//       throw new Error(apiMessage);
 //     }
 
-//     // Success workflow triggers completely unbothered
 //     setIsPasswordUpdated(true);
 //     setIsSuccess(true);        
 //     setCountdown(3);           
 
 //   } catch (error) {
-//     console.error("Reset password client processing error:", error);
+//     console.error("Reset password error:", error);
 
 //     setResetError(
 //       error instanceof Error
@@ -320,6 +260,66 @@ const handleResetPassword = async (data: ResetPasswordFormValues) => {
 //     setIsSubmitting(false);
 //   }
 // };
+
+const handleResetPassword = async (data: ResetPasswordFormValues) => {
+  if (isSubmitting) return;
+
+  setIsSubmitting(true);
+  setResetError("");
+
+  try {
+    // 🔒 Secure internal fetch call proxy matching your server configuration
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: data.password,
+      }),
+    });
+
+    const responseData = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const apiMessage = responseData?.error || "";
+      const normalizedMessage = apiMessage.toLowerCase();
+
+      // 💡 Preserve your custom error prioritization checks cleanly on the client layer
+      if (
+        normalizedMessage.includes("same") ||
+        normalizedMessage.includes("old password") ||
+        normalizedMessage.includes("different")
+      ) {
+        throw new Error(
+          "Your new password must be different from your current password."
+        );
+      }
+
+      if (response.status === 401 || response.status === 403 || !apiMessage) {
+        throw new Error("Invalid or expired reset link.");
+      }
+
+      throw new Error(apiMessage || "Unable to update your password. Please try again.");
+    }
+
+    // Success workflow triggers completely unbothered
+    setIsPasswordUpdated(true);
+    setIsSuccess(true);        
+    setCountdown(3);           
+
+  } catch (error) {
+    console.error("Reset password client processing error:", error);
+
+    setResetError(
+      error instanceof Error
+        ? error.message
+        : "Unable to update your password. Please try again."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 
   /*
