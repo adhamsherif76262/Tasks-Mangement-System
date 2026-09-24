@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { getValidSession } from "../app/lib/auth";
 interface UserMetadata {
   name?: string;
   job_title?: string;
@@ -91,21 +91,33 @@ export default function AppNavbar({
           );
         }
 
-        const storedSession =
-          localStorage.getItem("auth_session") ??
-          sessionStorage.getItem("auth_session");
+        // const storedSession = await getValidSession();
+        //   // localStorage.getItem("auth_session") ??
+        //   // sessionStorage.getItem("auth_session");
 
-        if (!storedSession) {
-          console.error("No authenticated session found.");
-          return;
-        }
+        // if (!storedSession) {
+        //   console.error("No authenticated session found.");
+        //   return;
+        // }
 
-        const session: AuthSession = JSON.parse(storedSession);
+        // const session: AuthSession = JSON.parse(storedSession);
 
-        if (!session.access_token) {
-          console.error("No access token found.");
-          return;
-        }
+        // if (!session.access_token) {
+        //   console.error("No access token found.");
+        //   return;
+        // }
+
+        const session = await getValidSession();
+
+if (!session) {
+  console.error("No valid session found.");
+  return;
+}
+
+if (!session.access_token) {
+  console.error("No access token found.");
+  return;
+}
 
         const response = await fetch(
           `${BASE_URL}/auth/v1/user`,

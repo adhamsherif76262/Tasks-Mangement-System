@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
@@ -14,8 +14,19 @@ import {
   type LoginFormData,
 } from "@/app/(user)/schemas/loginSchema";
 
+// interface AuthResponse {
+//   access_token: string;
+//   token_type: string;
+//   expires_in: number;
+//   expires_at: number;
+//   refresh_token: string;
 
-import { signUpSchema } from "@/app/(user)/schemas/signUpSchema";
+//   user: {
+//     id: string;
+//     email: string;
+//     role: string;
+//   };
+// }
 
 interface AuthResponse {
   access_token: string;
@@ -28,12 +39,16 @@ interface AuthResponse {
     id: string;
     email: string;
     role: string;
+    user_metadata?: {
+      name?: string;
+      job_title?: string;
+    };
   };
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
-const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+// const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
 
 export default function Loginpage() {
   const router = useRouter();
@@ -92,7 +107,7 @@ const {
       const result = await response.json();
 
 
-      console.log("Login response:", result);
+      // console.log("Login response:", result);
       if (!response.ok) {
 
         setLoginError(
@@ -125,33 +140,48 @@ const {
       };
 
 
+      // if (rememberMe) {
+
+      //   sessionStorage.removeItem("auth_session");
+
+      //   localStorage.setItem(
+      //     "auth_session",
+      //     JSON.stringify(session)
+      //   );
+
+      //   const now = new Date().getTime();
+
+      //   localStorage.setItem(
+      //     "auth_session_expires",
+      //     String(now + ONE_MONTH)
+      //   );
+
+      // } else {
+
+      //   localStorage.removeItem("auth_session");
+      //   localStorage.removeItem("auth_session_expires");
+
+      //   sessionStorage.setItem(
+      //     "auth_session",
+      //     JSON.stringify(session)
+      //   );
+      // }
+
       if (rememberMe) {
+  sessionStorage.removeItem("auth_session");
 
-        sessionStorage.removeItem("auth_session");
+  localStorage.setItem(
+    "auth_session",
+    JSON.stringify(session),
+  );
+} else {
+  localStorage.removeItem("auth_session");
 
-        localStorage.setItem(
-          "auth_session",
-          JSON.stringify(session)
-        );
-
-        const now = new Date().getTime();
-
-        localStorage.setItem(
-          "auth_session_expires",
-          String(now + ONE_MONTH)
-        );
-
-      } else {
-
-        localStorage.removeItem("auth_session");
-        localStorage.removeItem("auth_session_expires");
-
-        sessionStorage.setItem(
-          "auth_session",
-          JSON.stringify(session)
-        );
-      }
-
+  sessionStorage.setItem(
+    "auth_session",
+    JSON.stringify(session),
+  );
+}
       router.push("/projects");
 
     } catch (error) {

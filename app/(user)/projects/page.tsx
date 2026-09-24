@@ -1,16 +1,160 @@
+// "use client";
+
+// import { useCallback, useEffect, useRef, useState } from "react";
+// import { useRouter, usePathname } from "next/navigation";
+// import { getValidSession } from "../../lib/auth";
+// import Link from 'next/link';
+// import ProjectCard from "@/components/ProjectCard";
+
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+// const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
+
+// interface AuthSession {
+//   access_token: string;
+// }
+
+// interface Project {
+//   id: string;
+//   name: string;
+//   description: string | null;
+//   created_at: string;
+// }
+
+// type PageState = "loading" | "success" | "empty" | "error";
+
+
+
+
+// export default function ProjectsPage() {
+
+  
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const [projects, setProjects] = useState<Project[]>([]);
+//   const [pageState, setPageState] = useState<PageState>("loading");
+//   const [sessionState, setsessionState] = useState(null);
+
+//   const projectRouteMatch = pathname.match(
+//   /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
+// );
+
+// const activeProjectId = projectRouteMatch?.[1] ?? null;
+// const activeProjectSection = projectRouteMatch?.[2] ?? null;
+
+// const isInsideProject = Boolean(activeProjectId);
+
+// useEffect(() => {
+//   let mounted = true;
+
+//   const checkSession = async () => {
+//     const session = await getValidSession();
+//   setsessionState(session)
+//     if (!sessionState && mounted) {
+//       router.replace("/login");
+//     }
+//   };
+
+//   checkSession();
+
+//   return () => {
+//     mounted = false;
+//   };
+// }, []);
+
+//   const fetchProjects = useCallback(async () => {
+//     setPageState("loading");
+
+//     try {
+//       if (!BASE_URL) {
+//         throw new Error("NEXT_PUBLIC_BASE_URL is not configured.");
+//       }
+
+//       if (!API_KEY) {
+//         throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
+//       }
+
+//       // const storedSession =
+//       //   localStorage.getItem("auth_session") ??
+//       //   sessionStorage.getItem("auth_session");
+
+//       // if (!storedSession) {
+//       //   router.replace("/login");
+//       //   return;
+//       // }
+
+//       // let session: AuthSession;
+
+//       // try {
+//       //   session = JSON.parse(storedSession);
+//       // } catch {
+//       //   localStorage.removeItem("auth_session");
+//       //   localStorage.removeItem("auth_session_expires");
+//       //   sessionStorage.removeItem("auth_session");
+
+//       //   router.replace("/login");
+//       //   return;
+//       // }
+
+//       if (!sessionState.access_token) {
+//         router.replace("/login");
+//         return;
+//       }
+
+//       const response = await fetch(
+//         `${BASE_URL}/rest/v1/rpc/get_projects`,
+//         {
+//           method: "GET",
+//           headers: {
+//             apikey: API_KEY,
+//             Authorization: `Bearer ${sessionState.access_token}`,
+//             "Content-Type": "application/json",
+//           },
+//         },
+//       );
+
+//       if (!response.ok) {
+//         throw new Error("Failed to fetch projects.");
+//       }
+
+//       const result = await response.json();
+
+//       if (!Array.isArray(result)) {
+//         throw new Error("Invalid projects response.");
+//       }
+
+//       setProjects(result);
+//       setPageState(result.length === 0 ? "empty" : "success");
+//     } catch (error) {
+//       console.error("Get projects error:", error);
+
+//       setProjects([]);
+//       setPageState("error");
+//     }
+//   }, [router]);
+
+//   useEffect(() => {
+//     // eslint-disable-next-line react-hooks/set-state-in-effect
+//     fetchProjects();
+//   }, [fetchProjects]);
+
+//   const handleProjectClick = (projectId: string) => {
+//     router.push(`/projects/${projectId}/epics`);
+//   };
+
+//   const handleCreateProject = () => {
+//     router.push("/projects/add");
+//   };
+
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { getValidSession, AuthSession } from "../../lib/auth";
 import Link from 'next/link';
 import ProjectCard from "@/components/ProjectCard";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
-
-interface AuthSession {
-  access_token: string;
-}
 
 interface Project {
   id: string;
@@ -26,17 +170,10 @@ export default function ProjectsPage() {
   const pathname = usePathname();
   const [projects, setProjects] = useState<Project[]>([]);
   const [pageState, setPageState] = useState<PageState>("loading");
+  const [sessionState, setSessionState] = useState<AuthSession | null>(null);
 
-  const projectRouteMatch = pathname.match(
-  /^\/projects\/([^/]+)\/(epics|tasks|members|edit)(?:\/.*)?$/,
-);
-
-const activeProjectId = projectRouteMatch?.[1] ?? null;
-const activeProjectSection = projectRouteMatch?.[2] ?? null;
-
-const isInsideProject = Boolean(activeProjectId);
-
-  const fetchProjects = useCallback(async () => {
+  // Core project fetching function (Accepts session explicitly to prevent race conditions)
+  const fetchProjects = useCallback(async (currentSession: AuthSession) => {
     setPageState("loading");
 
     try {
@@ -48,29 +185,7 @@ const isInsideProject = Boolean(activeProjectId);
         throw new Error("NEXT_PUBLIC_SECRET_KEYS is not configured.");
       }
 
-      const storedSession =
-        localStorage.getItem("auth_session") ??
-        sessionStorage.getItem("auth_session");
-
-      if (!storedSession) {
-        router.replace("/login");
-        return;
-      }
-
-      let session: AuthSession;
-
-      try {
-        session = JSON.parse(storedSession);
-      } catch {
-        localStorage.removeItem("auth_session");
-        localStorage.removeItem("auth_session_expires");
-        sessionStorage.removeItem("auth_session");
-
-        router.replace("/login");
-        return;
-      }
-
-      if (!session.access_token) {
+      if (!currentSession?.access_token) {
         router.replace("/login");
         return;
       }
@@ -81,7 +196,7 @@ const isInsideProject = Boolean(activeProjectId);
           method: "GET",
           headers: {
             apikey: API_KEY,
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${currentSession.access_token}`,
             "Content-Type": "application/json",
           },
         },
@@ -101,16 +216,38 @@ const isInsideProject = Boolean(activeProjectId);
       setPageState(result.length === 0 ? "empty" : "success");
     } catch (error) {
       console.error("Get projects error:", error);
-
       setProjects([]);
       setPageState("error");
     }
   }, [router]);
 
+  // Combined Master Lifecycle Setup Effect
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchProjects();
-  }, [fetchProjects]);
+    let mounted = true;
+
+    const initializePage = async () => {
+      const session = await getValidSession();
+
+      if (!mounted) return;
+
+      if (!session || !session.access_token) {
+        router.replace("/login");
+        return;
+      }
+
+      // 1. Store the valid session cleanly into state
+      setSessionState(session);
+
+      // 2. Fetch projects immediately using the freshly fetched session snapshot
+      await fetchProjects(session);
+    };
+
+    initializePage();
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchProjects, router]);
 
   const handleProjectClick = (projectId: string) => {
     router.push(`/projects/${projectId}/epics`);
@@ -119,6 +256,9 @@ const isInsideProject = Boolean(activeProjectId);
   const handleCreateProject = () => {
     router.push("/projects/add");
   };
+
+  // ... Your return JSX goes down here
+
 
   return (
     <div className="flex min-h-screen w-full bg-[#F9F9FF]">

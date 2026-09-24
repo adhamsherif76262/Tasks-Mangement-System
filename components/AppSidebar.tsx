@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter , usePathname } from "next/navigation";
-
+import { getValidSession } from "../app/lib/auth";
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -403,13 +403,13 @@ function ProjectLinkIcon({
 }
 
 
-interface AuthSession {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-  expires_at: number;
-  refresh_token: string;
-}
+// interface AuthSession {
+//   access_token: string;
+//   token_type: string;
+//   expires_in: number;
+//   expires_at: number;
+//   refresh_token: string;
+// }
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
@@ -470,20 +470,20 @@ const isInsideProject = Boolean(activeProjectId);
     setIsLoggingOut(true);
 
     try {
-      const storedSession =
-        localStorage.getItem("auth_session") ??
-        sessionStorage.getItem("auth_session");
+      const storedSession = await getValidSession();
+        // localStorage.getItem("auth_session") ??
+        // sessionStorage.getItem("auth_session");
 
       if (storedSession && BASE_URL && API_KEY) {
         try {
-          const session: AuthSession = JSON.parse(storedSession);
+          // const session: AuthSession = JSON.parse(storedSession);
 
-          if (session.access_token) {
+          if (storedSession.access_token) {
             await fetch(`${BASE_URL}/auth/v1/logout`, {
               method: "POST",
               headers: {
                 apikey: API_KEY,
-                Authorization: `Bearer ${session.access_token}`,
+                Authorization: `Bearer ${storedSession.access_token}`,
                 "Content-Type": "application/json",
               },
             });
