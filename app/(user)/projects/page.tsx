@@ -82,7 +82,7 @@ function ProjectsList({
       </div>
 
       {/* Project cards */}
-      <div className="grid grid-cols-3 gap-4 max-xlg:grid-cols-2 max-md:grid-cols-1">
+      <div className="grid xl:grid-cols-3 gap-4 grid-cols-2 max-sm:grid-cols-1">
         {projects.map((project) => (
           <ProjectCard
             key={project.id}
@@ -111,7 +111,7 @@ function ProjectsList({
         type="button"
         onClick={onCreateProject}
         aria-label="Create new project"
-        className="fixed bottom-13 right-4 z-30 flex h-9 w-9 items-center justify-center rounded-[5px] bg-[#0052CC] text-white shadow-[0_4px_12px_rgba(0,61,155,0.25)] xlg:hidden"
+        className="fixed bottom-18 sm:bottom-3 right-4 z-30 flex h-9 w-9 items-center justify-center rounded-[5px] bg-[#0052CC] text-white shadow-[0_4px_12px_rgba(0,61,155,0.25)] md:hidden"
       >
         <PlusIcon size={18} />
       </button>
