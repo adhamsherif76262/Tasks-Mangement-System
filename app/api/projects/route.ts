@@ -2,56 +2,182 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+// export async function GET() {
+//   try {
+//     const cookieStore = await cookies()
+
+//     const supabase = createServerClient(
+//       process.env.NEXT_PUBLIC_BASE_URL!,
+//       process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//       {
+//         cookies: {
+//           getAll() { return cookieStore.getAll() },
+//           setAll(cookiesToSet) {
+//             cookiesToSet.forEach(({ name, value, options }) =>
+//               cookieStore.set(name, value, {
+//                 ...options,
+//                 httpOnly: true,
+//                 secure: process.env.NODE_ENV === 'production',
+//                 sameSite: 'lax',
+//               })
+//             )
+//           },
+//         },
+//       }
+//     )
+
+//     const { data: { user } } = await supabase.auth.getUser()
+//     if (!user) {
+//       return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 })
+//     }
+
+//     const response = await fetch(
+//       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/rpc/get_projects`,
+//       {
+//         method: "GET",
+//         headers: {
+//           apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     if (!response.ok) {
+//       return NextResponse.json({ error: 'Failed to fetch projects database rows' }, { status: response.status })
+//     }
+
+//     const data = await response.json()
+//     return NextResponse.json(data)
+//   } catch (error) {
+//     console.error('Projects proxy error:', error)
+//     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+//   }
+// }
+
+export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies()
+    const { searchParams } = new URL(request.url);
+
+    const limit = Number(searchParams.get("limit")) || 10;
+    const offset = Number(searchParams.get("offset")) || 0;
+
+    const cookieStore = await cookies();
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_BASE_URL!,
       process.env.NEXT_PUBLIC_SECRET_KEYS!,
       {
         cookies: {
-          getAll() { return cookieStore.getAll() },
+          getAll() {
+            return cookieStore.getAll();
+          },
+
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, {
-                ...options,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-              })
-            )
+            cookiesToSet.forEach(
+              ({ name, value, options }) =>
+                cookieStore.set(name, value, {
+                  ...options,
+                  httpOnly: true,
+                  secure:
+                    process.env.NODE_ENV ===
+                    "production",
+                  sameSite: "lax",
+                }),
+            );
           },
         },
-      }
-    )
+      },
+    );
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 })
+      return NextResponse.json(
+        { error: "Unauthorized access" },
+        { status: 401 },
+      );
+    }
+
+    const sessionToken = (
+      await supabase.auth.getSession()
+    ).data.session?.access_token;
+
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: "No active session" },
+        { status: 401 },
+      );
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/rpc/get_projects`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/rpc/get_projects?limit=${limit}&offset=${offset}`,
       {
         method: "GET",
         headers: {
-          apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          apikey:
+            process.env.NEXT_PUBLIC_SECRET_KEYS!,
+          Authorization: `Bearer ${sessionToken}`,
           "Content-Type": "application/json",
+          Prefer: "count=exact",
         },
-      }
+      },
     );
 
+    const data = await response
+      .json()
+      .catch(() => null);
+
     if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch projects database rows' }, { status: response.status })
+      console.error(
+        "❌ SUPABASE GET PROJECTS ERROR:",
+        data,
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            data?.message ||
+            data?.details ||
+            "Failed to fetch projects database rows",
+        },
+        {
+          status: response.status,
+        },
+      );
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    const contentRange =
+      response.headers.get("content-range");
+
+    const nextResponse = NextResponse.json(
+      data,
+    );
+
+    if (contentRange) {
+      nextResponse.headers.set(
+        "Content-Range",
+        contentRange,
+      );
+    }
+
+    return nextResponse;
   } catch (error) {
-    console.error('Projects proxy error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    console.error(
+      "Projects proxy error:",
+      error,
+    );
+
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+      },
+      {
+        status: 500,
+      },
+    );
   }
 }
 
@@ -82,7 +208,7 @@ export async function POST(request: Request) {
 
     const sessionToken = (await supabase.auth.getSession()).data.session?.access_token
 
-    const insertData: Record<string, any> = {
+    const insertData: Record<string, unknown> = {
       name: body.name.trim(),
       description: body.description?.trim() || "",
     }

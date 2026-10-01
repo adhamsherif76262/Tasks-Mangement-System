@@ -1,9 +1,15 @@
 "use client";
-
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ProjectCard from "@/components/ProjectCard";
 interface ProjectsListProps {
   projects: Project[];
   onProjectClick: (projectId: string) => void;
   onCreateProject: () => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  isLoadingMore: boolean;
 }
 function PlusIcon({ size = 15 }: { size?: number }) {
   return (
@@ -39,10 +45,11 @@ function PlusIcon({ size = 15 }: { size?: number }) {
     </svg>
   );
 }
-
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import ProjectCard from "@/components/ProjectCard";
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
 
 interface Project {
   id: string;
@@ -55,9 +62,12 @@ type PageState = "loading" | "success" | "empty" | "error";
 
 
 function ProjectsList({
-  projects,
-  onProjectClick,
+ projects,
   onCreateProject,
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoadingMore,
 }: ProjectsListProps) {
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -116,53 +126,276 @@ function ProjectsList({
         <PlusIcon size={18} />
       </button>
 
-      <Pagination />
+{isLoadingMore && (
+  <div className="flex justify-center py-6 md:hidden">
+    <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#D9E2F5] border-t-primary" />
+  </div>
+)}
+
+      <Pagination
+  currentPage={currentPage}
+  totalPages={totalPages}
+  onPageChange={onPageChange}
+/>
     </div>
   );
 }
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [pageState, setPageState] = useState<PageState>("loading");
+const [projects, setProjects] = useState<Project[]>([]);
+const [pageState, setPageState] =
+  useState<PageState>("loading");
 
-  const fetchProjects = useCallback(async () => {
-    setPageState("loading");
+  const [isMobile, setIsMobile] = useState(false);
+
+const [currentPage, setCurrentPage] =
+  useState(1);
+
+const [totalCount, setTotalCount] =
+  useState(0);
+
+const [isLoadingMore, setIsLoadingMore] =
+  useState(false);
+
+  const PROJECTS_PER_PAGE = 10;
+const totalPages = Math.ceil(
+  totalCount / PROJECTS_PER_PAGE,
+);
+
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(
+      window.matchMedia("(max-width: 767px)")
+        .matches,
+    );
+  };
+
+  checkMobile();
+
+  window.addEventListener(
+    "resize",
+    checkMobile,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "resize",
+      checkMobile,
+    );
+  };
+}, []);
+
+
+
+  // const fetchProjects = useCallback(async () => {
+  //   setPageState("loading");
+
+  //   try {
+  //     const response = await fetch("/api/projects", {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       if (response.status === 401) {
+  //         router.replace("/login");
+  //         return;
+  //       }
+  //       throw new Error("Failed to pull down project dataset.");
+  //     }
+
+  //     const result = await response.json();
+
+  //     if (!Array.isArray(result)) {
+  //       throw new Error("Invalid format received.");
+  //     }
+
+  //     setProjects(result);
+  //     setPageState(result.length === 0 ? "empty" : "success");
+  //   } catch (error) {
+  //     console.error("Get projects client parsing error:", error);
+  //     setProjects([]);
+  //     setPageState("error");
+  //   }
+  // }, [router]);
+
+  const fetchProjects = useCallback(
+  async (
+    page: number,
+    append = false,
+  ) => {
+    const offset =
+      (page - 1) * PROJECTS_PER_PAGE;
+
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setPageState("loading");
+    }
 
     try {
-      const response = await fetch("/api/projects", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/projects?limit=${PROJECTS_PER_PAGE}&offset=${offset}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.replace("/login");
-          return;
-        }
-        throw new Error("Failed to pull down project dataset.");
+      if (response.status === 401) {
+        router.replace("/login");
+        return;
       }
 
       const result = await response.json();
 
-      if (!Array.isArray(result)) {
-        throw new Error("Invalid format received.");
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+            "Failed to load projects",
+        );
       }
 
-      setProjects(result);
-      setPageState(result.length === 0 ? "empty" : "success");
+      if (!Array.isArray(result)) {
+        throw new Error(
+          "Invalid format received.",
+        );
+      }
+
+      const contentRange =
+        response.headers.get("Content-Range");
+
+      let total = totalCount;
+
+      if (contentRange) {
+        const match =
+          contentRange.match(/\/(\d+)$/);
+
+        if (match) {
+          total = Number(match[1]);
+        }
+      }
+
+      setTotalCount(total);
+
+      if (append) {
+        setProjects((previousProjects) => {
+          const existingIds = new Set(
+            previousProjects.map(
+              (project) => project.id,
+            ),
+          );
+
+          const newProjects = result.filter(
+            (project: Project) =>
+              !existingIds.has(project.id),
+          );
+
+          return [
+            ...previousProjects,
+            ...newProjects,
+          ];
+        });
+      } else {
+        setProjects(result);
+      }
+
+      setPageState(
+        result.length === 0 &&
+          !append
+          ? "empty"
+          : "success",
+      );
     } catch (error) {
-      console.error("Get projects client parsing error:", error);
-      setProjects([]);
-      setPageState("error");
+      console.error(
+        "Get projects client parsing error:",
+        error,
+      );
+
+      if (!append) {
+        setProjects([]);
+        setPageState("error");
+      }
+    } finally {
+      if (append) {
+        setIsLoadingMore(false);
+      }
     }
-  }, [router]);
+  },
+  [router, totalCount],
+);
 
   useEffect(() => {
-    fetchProjects();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProjects(1);
   }, [fetchProjects]);
+
+  useEffect(() => {
+  if (!isMobile) {
+    return;
+  }
+
+  const handleScroll = () => {
+    if (
+      isLoadingMore ||
+      pageState !== "success"
+    ) {
+      return;
+    }
+
+    const hasMore =
+      projects.length < totalCount;
+
+    if (!hasMore) {
+      return;
+    }
+
+    const scrollPosition =
+      window.innerHeight +
+      window.scrollY;
+
+    const threshold =
+      document.documentElement
+        .scrollHeight - 400;
+
+    if (scrollPosition >= threshold) {
+      const nextPage =
+        Math.floor(
+          projects.length /
+            PROJECTS_PER_PAGE,
+        ) + 1;
+
+      fetchProjects(
+        nextPage,
+        true,
+      );
+    }
+  };
+
+  window.addEventListener(
+    "scroll",
+    handleScroll,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "scroll",
+      handleScroll,
+    );
+  };
+}, [
+  isMobile,
+  isLoadingMore,
+  pageState,
+  projects.length,
+  totalCount,
+  fetchProjects,
+]);
 
   const handleProjectClick = (projectId: string) => {
     router.push(`/projects/${projectId}/epics`);
@@ -171,6 +404,15 @@ export default function ProjectsPage() {
   const handleCreateProject = () => {
     router.push("/projects/add");
   };
+
+  const handlePageChange = (page: number) => {
+  if (page === currentPage) {
+    return;
+  }
+
+  setCurrentPage(page);
+  fetchProjects(page);
+};
 
   return (
     <div className="flex min-h-screen w-full bg-[#F9F9FF]">
@@ -182,6 +424,10 @@ export default function ProjectsPage() {
             projects={projects}
             onProjectClick={handleProjectClick}
             onCreateProject={handleCreateProject}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoadingMore={isLoadingMore}
           />
         )}
 
@@ -192,32 +438,10 @@ export default function ProjectsPage() {
         )}
 
         {pageState === "error" && (
-          <ProjectsErrorState onRetry={fetchProjects} />
+          <ProjectsErrorState onRetry={()=>fetchProjects(1)} />
         )}
       </main>
     </div>
-  );
-}
-
-interface ProjectCardProps {
-  project: Project;
-  onClick: () => void;
-}
-
-interface ProjectCardLinkProps {
-  icon: React.ReactNode;
-  label: string;
-}
-
-function ProjectCardLink({
-  icon,
-  label,
-}: ProjectCardLinkProps) {
-  return (
-    <span className="flex items-center gap-0.5 text-[7px] font-semibold text-primary">
-      {icon}
-      {label}
-    </span>
   );
 }
 
@@ -324,57 +548,24 @@ function ProjectsErrorState({
   );
 }
 
-function Pagination() {
-  return (
-    <div className="mt-16 flex justify-end border-t border-[#E5E8F0] pt-5 max-md:mb-20 max-md:mt-8">
-      <div className="flex items-center gap-1">
-        <PaginationButton disabled>
-          ‹
-        </PaginationButton>
-
-        <PaginationButton active>
-          1
-        </PaginationButton>
-
-        <PaginationButton>
-          2
-        </PaginationButton>
-
-        <PaginationButton>
-          3
-        </PaginationButton>
-
-        <PaginationButton>
-          ...
-        </PaginationButton>
-
-        <PaginationButton>
-          15
-        </PaginationButton>
-
-        <PaginationButton>
-          ›
-        </PaginationButton>
-      </div>
-    </div>
-  );
-}
-
 interface PaginationButtonProps {
   children: React.ReactNode;
   active?: boolean;
   disabled?: boolean;
+  onClick?: () => void;
 }
 
 function PaginationButton({
   children,
   active = false,
   disabled = false,
+  onClick,
 }: PaginationButtonProps) {
   return (
     <button
       type="button"
       disabled={disabled}
+      onClick={onClick}
       className={`flex h-6 w-6 items-center justify-center rounded-[2px] border text-[8px] font-medium ${
         active
           ? "border-primary bg-primary text-white"
@@ -390,25 +581,99 @@ function PaginationButton({
   );
 }
 
-function FolderIcon({ size = 17 }: { size?: number }) {
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationProps) {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from(
+        { length: totalPages },
+        (_, index) => index + 1,
+      );
+    }
+
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", totalPages];
+    }
+
+    if (currentPage >= totalPages - 2) {
+      return [
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
+  };
+
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M3.5 6.5C3.5 5.67 4.17 5 5 5H9L11 7H19C19.83 7 20.5 7.67 20.5 8.5V17.5C20.5 18.33 19.83 19 19 19H5C4.17 19 3.5 18.33 3.5 17.5V6.5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div className="mt-16 sm:flex sm:justify-end border-t border-[#E5E8F0] pt-5 max-md:mb-20 max-md:mt-8 hidden">
+      <div className="flex items-center gap-1">
+        <PaginationButton
+          disabled={currentPage === 1}
+          onClick={() =>
+            onPageChange(currentPage - 1)
+          }
+        >
+          ‹
+        </PaginationButton>
+
+        {getPageNumbers().map(
+          (page, index) =>
+            page === "..." ? (
+              <span
+                key={`ellipsis-${index}`}
+                className="flex h-6 w-6 items-center justify-center text-[8px] text-slate-neutral-medium"
+              >
+                ...
+              </span>
+            ) : (
+              <PaginationButton
+                key={page}
+                active={page === currentPage}
+                onClick={() =>
+                  onPageChange(page as number)
+                }
+              >
+                {page}
+              </PaginationButton>
+            ),
+        )}
+
+        <PaginationButton
+          disabled={
+            currentPage === totalPages
+          }
+          onClick={() =>
+            onPageChange(currentPage + 1)
+          }
+        >
+          ›
+        </PaginationButton>
+      </div>
+    </div>
   );
 }
+
+
 
 function EmptyProjectsIllustration() {
   return (

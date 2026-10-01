@@ -173,6 +173,7 @@ export default function ProjectEpicsPage() {
   }, [projectId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEpics();
   }, [fetchEpics]);
 
@@ -187,6 +188,8 @@ export default function ProjectEpicsPage() {
       .maybeSingle()
       .then(({ data }) => {
         if (!cancelled) setProjectName(data?.name ?? null);
+        // console.log("Querying ID:", projectId, typeof projectId)
+        // console.log("Querying Name:", data, typeof projectName)
       });
     return () => {
       cancelled = true;
@@ -262,7 +265,7 @@ export default function ProjectEpicsPage() {
           </div>
           <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">Something went wrong</h2>
           <p className="text-[13px] text-[#7D8592] max-w-sm mb-6">
-            We're having trouble retrieving your project epics right now. Please try again in a moment.
+            We&apos;re having trouble retrieving your project epics right now. Please try again in a moment.
           </p>
           <button
             onClick={fetchEpics}
