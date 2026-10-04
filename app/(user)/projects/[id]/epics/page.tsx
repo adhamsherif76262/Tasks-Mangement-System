@@ -566,7 +566,7 @@ useEffect(() => {
             We&apos;re having trouble retrieving your project epics right now. Please try again in a moment.
           </p>
           <button
-            onClick={fetchEpics}
+            onClick={()=> fetchEpics(1)}
             className="h-11 bg-[#0052CC] hover:bg-[#0040A3] text-white font-bold text-[12px] px-6 rounded-[4px] transition-colors"
           >
             Retry Connection
