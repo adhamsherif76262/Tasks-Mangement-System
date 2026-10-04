@@ -97,7 +97,7 @@ export function EpicDetailsModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200">
       
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="relative w-full sm:max-w-[672px] h-auto max-h-[772px] sm:max-h-[90vh] bg-white rounded-t-[28px] sm:rounded-2xl shadow-xl border-t sm:border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+      <div className="relative w-full sm:max-w-[672px] h-auto max-h-[92vh] sm:max-h-[90vh] bg-white rounded-t-[28px] sm:rounded-2xl shadow-xl border-t sm:border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
         
         <div className="w-full flex justify-center py-3 sm:hidden shrink-0 bg-white">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
