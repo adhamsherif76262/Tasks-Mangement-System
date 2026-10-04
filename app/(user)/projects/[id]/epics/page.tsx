@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { createBrowserClient } from "@supabase/ssr";
 import { useParams } from "next/navigation";
 
@@ -149,36 +150,333 @@ export default function ProjectEpicsPage() {
   const projectId = String(
     params.id ?? "",
   );
-  const [epics, setEpics] = useState<Epic[]>([]);
-  const [state, setState] = useState<PageState>("loading");
-  const [projectName, setProjectName] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  // const [epics, setEpics] = useState<Epic[]>([]);
+  // const [state, setState] = useState<PageState>("loading");
+  // const [projectName, setProjectName] = useState<string | null>(null);
+  // const [search, setSearch] = useState("");
 
-  const fetchEpics = useCallback(async () => {
-    setState("loading");
-    setEpics([]); // never show a stale project's epics while a new one loads
+  const LIMIT = 10;
 
-    const { data, error } = await supabase
-      .from("project_epics")
-      .select("*")
-      .eq("project_id", projectId);
+const [epics, setEpics] = useState<Epic[]>([]);
+const [state, setState] = useState<PageState>("loading");
+const [projectName, setProjectName] = useState<string | null>(null);
+const [search, setSearch] = useState("");
 
-    if (error) {
+const [currentPage, setCurrentPage] = useState(1);
+const [totalCount, setTotalCount] = useState(0);
+
+const [loadingMore, setLoadingMore] = useState(false);
+const [loadMoreError, setLoadMoreError] = useState(false);
+
+const [isMobile, setIsMobile] = useState(false);
+
+const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+const totalPages = Math.ceil(totalCount / LIMIT);
+
+const hasMore = epics.length < totalCount;
+
+  // const fetchEpics = useCallback(async () => {
+  //   setState("loading");
+  //   setEpics([]); // never show a stale project's epics while a new one loads
+
+  //   const { data, error } = await supabase
+  //     .from("project_epics")
+  //     .select("*")
+  //     .eq("project_id", projectId);
+
+  //   if (error) {
+  //     setState("error");
+  //     return;
+  //   }
+
+  //   setEpics(data ?? []);
+  //   setState(data.length === 0 ? "empty" : "success");
+  // }, [projectId]);
+
+//   const fetchEpics = useCallback(
+//   async (page = 1, append = false) => {
+//         setState("loading");
+//     setEpics([]); // never show a stale project's epics while a new one loads
+
+//     const { data, error } = await supabase
+//       .from("project_epics")
+//       .select("*")
+//       .eq("project_id", projectId);
+
+//     if (error) {
+//       setState("error");
+//       return;
+//     }
+
+//     setEpics(data ?? []);
+//     setState(data.length === 0 ? "empty" : "success");
+
+//     if (!projectId) {
+//       setState("error");
+//       return;
+//     }
+
+//     const offset = (page - 1) * LIMIT;
+
+//     if (append) {
+//       setLoadingMore(true);
+//       setLoadMoreError(false);
+//     } else {
+//       setState("loading");
+//       setLoadMoreError(false);
+//     }
+
+//     try {
+//       // const response = await fetch(
+//       //   `/api/projects/project_id=${encodeURIComponent(
+//       //     projectId,
+//       //   )}&limit=${LIMIT}&offset=${offset}`,
+//       //   {
+//       //     method: "GET",
+//       //   },
+//       // );
+
+//       const response = await fetch(
+//   `/api/projects/${encodeURIComponent(
+//     projectId,
+//   )}/epics?limit=${LIMIT}&offset=${offset}`,
+//   {
+//     method: "GET",
+//   },
+// );
+//       if (!response.ok) {
+//         throw new Error("Failed to load epics");
+//       }
+
+//       const data: Epic[] = await response.json();
+
+//       const contentRange = response.headers.get("Content-Range");
+
+//       let nextTotalCount: number | null = null;
+
+//       if (contentRange) {
+//         const total = contentRange.split("/")[1];
+//         const parsedTotal = Number(total);
+
+//         if (Number.isFinite(parsedTotal)) {
+//           nextTotalCount = parsedTotal;
+//         }
+//       }
+
+//       if (nextTotalCount !== null) {
+//         setTotalCount(nextTotalCount);
+//       }
+
+//       if (append) {
+//         setEpics((previousEpics) => {
+//           const existingIds = new Set(
+//             previousEpics.map((epic) => epic.id),
+//           );
+
+//           const newEpics = data.filter(
+//             (epic) => !existingIds.has(epic.id),
+//           );
+
+//           return [...previousEpics, ...newEpics];
+//         });
+
+//         setCurrentPage(page);
+//       } else {
+//         setEpics(data);
+//         setCurrentPage(page);
+
+//         if (data.length === 0) {
+//           setState("empty");
+//         } else {
+//           setState("success");
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Failed to load epics:", error);
+
+//       if (append) {
+//         setLoadMoreError(true);
+//       } else {
+//         setState("error");
+//       }
+//     } finally {
+//       if (append) {
+//         setLoadingMore(false);
+//       }
+//     }
+//   },
+//   [projectId],
+// );
+
+const fetchEpics = useCallback(
+  async (page = 1, append = false) => {
+    if (!projectId) {
       setState("error");
       return;
     }
 
-    setEpics(data ?? []);
-    setState(data.length === 0 ? "empty" : "success");
-  }, [projectId]);
+    const offset = (page - 1) * LIMIT;
 
+    if (append) {
+      setLoadingMore(true);
+      setLoadMoreError(false);
+    } else {
+      setState("loading");
+      setLoadMoreError(false);
+    }
+
+    try {
+      const response = await fetch(
+        `/api/projects/${encodeURIComponent(
+          projectId,
+        )}/epics?limit=${LIMIT}&offset=${offset}`,
+        {
+          method: "GET",
+        },
+      );
+console.log(response)
+      if (!response.ok) {
+        throw new Error("Failed to load epics");
+      }
+
+      const data: Epic[] = await response.json();
+
+      const contentRange = response.headers.get("Content-Range");
+
+      let nextTotalCount: number | null = null;
+
+      if (contentRange) {
+        const total = contentRange.split("/")[1];
+        const parsedTotal = Number(total);
+
+        if (Number.isFinite(parsedTotal)) {
+          nextTotalCount = parsedTotal;
+        }
+      }
+
+      if (nextTotalCount !== null) {
+        setTotalCount(nextTotalCount);
+      }
+
+      if (append) {
+        setEpics((previousEpics) => {
+          const existingIds = new Set(
+            previousEpics.map((epic) => epic.id),
+          );
+
+          const newEpics = data.filter(
+            (epic) => !existingIds.has(epic.id),
+          );
+
+          return [...previousEpics, ...newEpics];
+        });
+
+        setCurrentPage(page);
+      } else {
+        setEpics(data);
+        setCurrentPage(page);
+
+        if (data.length === 0) {
+          setState("empty");
+        } else {
+          setState("success");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load epics:", error);
+
+      if (append) {
+        setLoadMoreError(true);
+      } else {
+        setState("error");
+      }
+    } finally {
+      if (append) {
+        setLoadingMore(false);
+      }
+    }
+  },
+  [projectId],
+);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEpics();
   }, [fetchEpics]);
 
-  // Best-effort project name for the breadcrumb — adjust table/column
-  // if your schema names it differently.
+useEffect(() => {
+  const mediaQuery = window.matchMedia("(max-width: 767px)");
+
+  const updateMobileState = () => {
+    setIsMobile(mediaQuery.matches);
+  };
+
+  updateMobileState();
+
+  mediaQuery.addEventListener("change", updateMobileState);
+
+  return () => {
+    mediaQuery.removeEventListener(
+      "change",
+      updateMobileState,
+    );
+  };
+}, []);
+
+  useEffect(() => {
+  if (!isMobile) {
+    return;
+  }
+
+  if (!loadMoreRef.current) {
+    return;
+  }
+
+  if (state !== "success") {
+    return;
+  }
+
+  if (!hasMore) {
+    return;
+  }
+
+  if (loadingMore) {
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const firstEntry = entries[0];
+
+      if (!firstEntry.isIntersecting) {
+        return;
+      }
+
+      if (loadingMore || !hasMore) {
+        return;
+      }
+
+      fetchEpics(currentPage + 1, true);
+    },
+    {
+      rootMargin: "200px",
+    },
+  );
+
+  observer.observe(loadMoreRef.current);
+
+  return () => {
+    observer.disconnect();
+  };
+}, [
+  isMobile,
+  state,
+  hasMore,
+  loadingMore,
+  currentPage,
+  fetchEpics,
+]);
+
   useEffect(() => {
     let cancelled = false;
     supabase
@@ -286,7 +584,7 @@ export default function ProjectEpicsPage() {
           </div> */}
               <EmptyStateIcon />
 
-          <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">No epics in this project yet.</h2>
+          <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">No epics found for this project</h2>
           <p className="text-[13px] text-[#7D8592] max-w-sm mb-6">
             Break down your large project into manageable epics to track progress better and maintain architectural clarity.
           </p>
@@ -306,13 +604,13 @@ export default function ProjectEpicsPage() {
       {state === "success" && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredEpics.map((epic) => (
+            {filteredEpics.map((epic : Epic) => (
               <EpicCard key={epic.id} epic={epic} />
             ))}
           </div>
 
           {/* Pagination UI only — no logic per spec */}
-          <div className="flex items-center justify-center md:justify-end gap-1.5 mt-8">
+          {/* <div className="flex items-center justify-center md:justify-end gap-1.5 mt-8">
             <button
               disabled
               className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#8A94A6] text-[12px] disabled:opacity-60"
@@ -335,7 +633,42 @@ export default function ProjectEpicsPage() {
             <button className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#526487] text-[12px]">
               ›
             </button>
-          </div>
+          </div> */}
+          {!isMobile && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => fetchEpics(page)}
+            />
+          )}
+          {isMobile && (
+            <div ref={loadMoreRef} className="flex justify-center py-6">
+              {loadingMore && (
+                <div className="flex items-center gap-2 text-[11px] text-[#7D8592]">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#DCE4FA] border-t-[#0052CC]" />
+                  Loading more epics...
+                </div>
+              )}
+          
+              {!loadingMore && loadMoreError && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-[11px] text-red-500">
+                    Failed to load epics
+                  </p>
+              
+                  <button
+                    type="button"
+                    onClick={() =>
+                      fetchEpics(currentPage + 1, true)
+                    }
+                    className="text-[11px] font-semibold text-[#0052CC]"
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
