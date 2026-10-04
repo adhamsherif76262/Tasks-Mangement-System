@@ -5,6 +5,7 @@ import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { createBrowserClient } from "@supabase/ssr";
 import { useParams } from "next/navigation";
+import { EpicDetailsModal } from "@/components/epic-details-modal";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_BASE_URL!,
@@ -72,36 +73,7 @@ function EpicCardSkeleton() {
   );
 }
 
-function EpicCard({ epic }: { epic: Epic }) {
-  return (
-    <div className="bg-white rounded-[6px] border-l-4 border-l-[#0052CC] border-y border-r border-y-[#E2E5EE] border-r-[#E2E5EE] p-5 shadow-[0_1px_3px_rgba(4,27,60,0.03)]">
-      <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-[#0052CC] bg-[#EEF1FC] px-2.5 py-1 rounded">
-        {epic.epic_id}
-      </span>
 
-      <h3 className="text-[15px] font-bold text-[#0A1629] mt-3 mb-4 leading-snug">
-        {epic.title}
-      </h3>
-
-      <div className="flex items-center gap-2.5 mb-4">
-        <div className="h-8 w-8 shrink-0 rounded-full bg-[#0052CC] text-white text-[11px] font-bold flex items-center justify-center">
-          {getInitials(epic.assignee?.name ?? "Unassigned")}
-        </div>
-        <div>
-          <p className="text-[10px] text-[#8A94A6]">Assignee</p>
-          <p className="text-[12px] font-bold text-[#0A1629]">
-            {epic.assignee?.name ?? "Unassigned"}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-[11px] text-[#7D8592] pt-3 border-t border-[#F0F1F6]">
-        <span>Created by: {epic.created_by?.name ?? "Unknown"}</span>
-        <span>{formatDeadline(epic.deadline)}</span>
-      </div>
-    </div>
-  );
-}
 
 function EmptyStateIcon() {
   return (
@@ -150,12 +122,53 @@ export default function ProjectEpicsPage() {
   const projectId = String(
     params.id ?? "",
   );
-  // const [epics, setEpics] = useState<Epic[]>([]);
-  // const [state, setState] = useState<PageState>("loading");
-  // const [projectName, setProjectName] = useState<string | null>(null);
-  // const [search, setSearch] = useState("");
 
   const LIMIT = 10;
+
+    // Track open state alongside the focused Epic ID context target
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
+
+  const handleOpenEpicDetails = (epicId: string) => {
+    setSelectedEpicId(epicId);
+    setIsDetailsOpen(true);
+  };
+
+  const handleCloseEpicDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedEpicId(null);
+  };
+
+  function EpicCard({ epic }: { epic: Epic }) {
+  return (
+    <div onClick={() => handleOpenEpicDetails(epic.id)} className="bg-white rounded-[6px] border-l-4 border-l-[#0052CC] border-y border-r border-y-[#E2E5EE] border-r-[#E2E5EE] p-5 shadow-[0_1px_3px_rgba(4,27,60,0.03)]">
+      <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-[#0052CC] bg-[#EEF1FC] px-2.5 py-1 rounded">
+        {epic.epic_id}
+      </span>
+
+      <h3 className="text-[15px] font-bold text-[#0A1629] mt-3 mb-4 leading-snug">
+        {epic.title}
+      </h3>
+
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="h-8 w-8 shrink-0 rounded-full bg-[#0052CC] text-white text-[11px] font-bold flex items-center justify-center">
+          {getInitials(epic.assignee?.name ?? "Unassigned")}
+        </div>
+        <div>
+          <p className="text-[10px] text-[#8A94A6]">Assignee</p>
+          <p className="text-[12px] font-bold text-[#0A1629]">
+            {epic.assignee?.name ?? "Unassigned"}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between text-[11px] text-[#7D8592] pt-3 border-t border-[#F0F1F6]">
+        <span>Created by: {epic.created_by?.name ?? "Unknown"}</span>
+        <span>{formatDeadline(epic.deadline)}</span>
+      </div>
+    </div>
+  );
+}
 
 const [epics, setEpics] = useState<Epic[]>([]);
 const [state, setState] = useState<PageState>("loading");
@@ -175,139 +188,6 @@ const loadMoreRef = useRef<HTMLDivElement | null>(null);
 const totalPages = Math.ceil(totalCount / LIMIT);
 
 const hasMore = epics.length < totalCount;
-
-  // const fetchEpics = useCallback(async () => {
-  //   setState("loading");
-  //   setEpics([]); // never show a stale project's epics while a new one loads
-
-  //   const { data, error } = await supabase
-  //     .from("project_epics")
-  //     .select("*")
-  //     .eq("project_id", projectId);
-
-  //   if (error) {
-  //     setState("error");
-  //     return;
-  //   }
-
-  //   setEpics(data ?? []);
-  //   setState(data.length === 0 ? "empty" : "success");
-  // }, [projectId]);
-
-//   const fetchEpics = useCallback(
-//   async (page = 1, append = false) => {
-//         setState("loading");
-//     setEpics([]); // never show a stale project's epics while a new one loads
-
-//     const { data, error } = await supabase
-//       .from("project_epics")
-//       .select("*")
-//       .eq("project_id", projectId);
-
-//     if (error) {
-//       setState("error");
-//       return;
-//     }
-
-//     setEpics(data ?? []);
-//     setState(data.length === 0 ? "empty" : "success");
-
-//     if (!projectId) {
-//       setState("error");
-//       return;
-//     }
-
-//     const offset = (page - 1) * LIMIT;
-
-//     if (append) {
-//       setLoadingMore(true);
-//       setLoadMoreError(false);
-//     } else {
-//       setState("loading");
-//       setLoadMoreError(false);
-//     }
-
-//     try {
-//       // const response = await fetch(
-//       //   `/api/projects/project_id=${encodeURIComponent(
-//       //     projectId,
-//       //   )}&limit=${LIMIT}&offset=${offset}`,
-//       //   {
-//       //     method: "GET",
-//       //   },
-//       // );
-
-//       const response = await fetch(
-//   `/api/projects/${encodeURIComponent(
-//     projectId,
-//   )}/epics?limit=${LIMIT}&offset=${offset}`,
-//   {
-//     method: "GET",
-//   },
-// );
-//       if (!response.ok) {
-//         throw new Error("Failed to load epics");
-//       }
-
-//       const data: Epic[] = await response.json();
-
-//       const contentRange = response.headers.get("Content-Range");
-
-//       let nextTotalCount: number | null = null;
-
-//       if (contentRange) {
-//         const total = contentRange.split("/")[1];
-//         const parsedTotal = Number(total);
-
-//         if (Number.isFinite(parsedTotal)) {
-//           nextTotalCount = parsedTotal;
-//         }
-//       }
-
-//       if (nextTotalCount !== null) {
-//         setTotalCount(nextTotalCount);
-//       }
-
-//       if (append) {
-//         setEpics((previousEpics) => {
-//           const existingIds = new Set(
-//             previousEpics.map((epic) => epic.id),
-//           );
-
-//           const newEpics = data.filter(
-//             (epic) => !existingIds.has(epic.id),
-//           );
-
-//           return [...previousEpics, ...newEpics];
-//         });
-
-//         setCurrentPage(page);
-//       } else {
-//         setEpics(data);
-//         setCurrentPage(page);
-
-//         if (data.length === 0) {
-//           setState("empty");
-//         } else {
-//           setState("success");
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Failed to load epics:", error);
-
-//       if (append) {
-//         setLoadMoreError(true);
-//       } else {
-//         setState("error");
-//       }
-//     } finally {
-//       if (append) {
-//         setLoadingMore(false);
-//       }
-//     }
-//   },
-//   [projectId],
-// );
 
 const fetchEpics = useCallback(
   async (page = 1, append = false) => {
@@ -609,31 +489,6 @@ useEffect(() => {
             ))}
           </div>
 
-          {/* Pagination UI only — no logic per spec */}
-          {/* <div className="flex items-center justify-center md:justify-end gap-1.5 mt-8">
-            <button
-              disabled
-              className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#8A94A6] text-[12px] disabled:opacity-60"
-            >
-              ‹
-            </button>
-            <button className="h-9 w-9 flex items-center justify-center rounded-[4px] bg-[#0052CC] text-white text-[12px] font-bold">
-              1
-            </button>
-            <button className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#526487] text-[12px]">
-              2
-            </button>
-            <button className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#526487] text-[12px]">
-              3
-            </button>
-            <span className="h-9 w-9 flex items-center justify-center text-[#8A94A6] text-[12px]">…</span>
-            <button className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#526487] text-[12px]">
-              15
-            </button>
-            <button className="h-9 w-9 flex items-center justify-center rounded-[4px] border border-[#E2E5EE] text-[#526487] text-[12px]">
-              ›
-            </button>
-          </div> */}
           {!isMobile && totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
@@ -680,6 +535,14 @@ useEffect(() => {
       >
         +
       </Link>
+
+      {/* Mount Modal to page bottom tree layer */}
+      <EpicDetailsModal
+        isOpen={isDetailsOpen}
+        epicId={selectedEpicId}
+        projectId={projectId}
+        onClose={handleCloseEpicDetails}
+      />
     </div>
   );
 }
