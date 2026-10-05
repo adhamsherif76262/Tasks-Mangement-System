@@ -174,6 +174,7 @@ const [epics, setEpics] = useState<Epic[]>([]);
 const [state, setState] = useState<PageState>("loading");
 const [projectName, setProjectName] = useState<string | null>(null);
 const [search, setSearch] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
 
 const [currentPage, setCurrentPage] = useState(1);
 const [totalCount, setTotalCount] = useState(0);
@@ -189,6 +190,17 @@ const totalPages = Math.ceil(totalCount / LIMIT);
 
 const hasMore = epics.length < totalCount;
 
+
+useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedSearch(search.trim());
+  }, 500);
+
+  return () => {
+    clearTimeout(timeout);
+  };
+}, [search]);
+
 const fetchEpics = useCallback(
   async (page = 1, append = false) => {
     if (!projectId) {
@@ -197,6 +209,8 @@ const fetchEpics = useCallback(
     }
 
     const offset = (page - 1) * LIMIT;
+    // const searchTerm = search.trim();
+    const searchTerm = debouncedSearch;
 
     if (append) {
       setLoadingMore(true);
@@ -207,17 +221,28 @@ const fetchEpics = useCallback(
     }
 
     try {
+      const queryParams = new URLSearchParams({
+        limit: String(LIMIT),
+        offset: String(offset),
+      });
+
+      if (searchTerm) {
+        queryParams.set("search", searchTerm);
+      }
+
       const response = await fetch(
         `/api/projects/${encodeURIComponent(
           projectId,
-        )}/epics?limit=${LIMIT}&offset=${offset}`,
+        )}/epics?${queryParams.toString()}`,
         {
           method: "GET",
         },
       );
-console.log(response)
+
       if (!response.ok) {
-        throw new Error("Failed to load epics");
+        throw new Error(
+          searchTerm ? "Failed to search epics" : "Failed to load epics",
+        );
       }
 
       const data: Epic[] = await response.json();
@@ -237,6 +262,8 @@ console.log(response)
 
       if (nextTotalCount !== null) {
         setTotalCount(nextTotalCount);
+      } else {
+        setTotalCount(0);
       }
 
       if (append) {
@@ -264,7 +291,12 @@ console.log(response)
         }
       }
     } catch (error) {
-      console.error("Failed to load epics:", error);
+      console.error(
+        search.trim()
+          ? "Failed to search epics:"
+          : "Failed to load epics:",
+        error,
+      );
 
       if (append) {
         setLoadMoreError(true);
@@ -277,9 +309,12 @@ console.log(response)
       }
     }
   },
-  [projectId],
+  // [projectId, search],
+  [projectId, debouncedSearch],
 );
-  useEffect(() => {
+
+
+useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEpics();
   }, [fetchEpics]);
@@ -374,15 +409,6 @@ useEffect(() => {
     };
   }, [projectId]);
 
-  const filteredEpics = epics.filter((epic) => {
-    if (!search.trim()) return true;
-    const q = search.trim().toLowerCase();
-    return (
-      epic.title.toLowerCase().includes(q) ||
-      epic.epic_id.toLowerCase().includes(q)
-    );
-  });
-
   return (
     <div className="min-h-screen w-full bg-[#F9F9FF] px-4 py-6 md:px-8 md:py-8 font-sans pb-24 md:pb-8">
       {/* Breadcrumb - desktop only */}
@@ -442,8 +468,11 @@ useEffect(() => {
                 </svg>
           </div>
           <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">Something went wrong</h2>
+
           <p className="text-[13px] text-[#7D8592] max-w-sm mb-6">
-            We&apos;re having trouble retrieving your project epics right now. Please try again in a moment.
+            {search.trim()
+              ? "Failed to search epics"
+              : "We're having trouble retrieving your project epics right now. Please try again in a moment."}
           </p>
           <button
             onClick={()=> fetchEpics(1)}
@@ -457,17 +486,19 @@ useEffect(() => {
       {/* Empty state */}
       {state === "empty" && (
         <div className="flex flex-col items-center justify-center text-center py-24">
-          {/* <div className="h-14 w-14 rounded-full bg-[#EEF1FC] text-[#0052CC] flex items-center justify-center mb-5">
-            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </div> */}
               <EmptyStateIcon />
 
-          <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">No epics found for this project</h2>
-          <p className="text-[13px] text-[#7D8592] max-w-sm mb-6">
-            Break down your large project into manageable epics to track progress better and maintain architectural clarity.
-          </p>
+            <h2 className="text-[18px] font-bold text-[#0A1629] mb-2">
+              {search.trim()
+                ? "No epics found matching your search"
+                : "No epics found for this project"}
+            </h2>
+              
+            <p className="text-[13px] text-[#7D8592] max-w-sm mb-6">
+              {search.trim()
+                ? "Try adjusting your search term or clearing the search to see more epics."
+                : "Break down your large project into manageable epics to track progress better and maintain architectural clarity."}
+            </p>
           <Link
             href={`/projects/${projectId}/epics/new`}
             className="inline-flex max-xxs:hidden items-center gap-2 h-11 bg-[#0052CC] hover:bg-[#0040A3] text-white font-bold text-[12px] px-6 rounded-[4px] transition-colors"
@@ -484,7 +515,7 @@ useEffect(() => {
       {state === "success" && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredEpics.map((epic : Epic) => (
+            {epics.map((epic : Epic) => (
               <EpicCard key={epic.id} epic={epic} />
             ))}
           </div>

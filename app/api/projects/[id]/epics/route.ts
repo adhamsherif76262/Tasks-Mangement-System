@@ -265,6 +265,112 @@ async function getSupabaseServerClient() {
 }
 
 // GET: Fetch project epics with pagination
+// export async function GET(
+//   request: Request,
+//   { params }: { params: Promise<{ id: string }> },
+// ) {
+//   try {
+//     const { id: projectId } = await params;
+
+//     const { searchParams } = new URL(request.url);
+
+//     const limit = searchParams.get("limit") ?? "10";
+//     const offset = searchParams.get("offset") ?? "0";
+
+//     if (!projectId) {
+//       return NextResponse.json(
+//         { error: "Project ID is required" },
+//         { status: 400 },
+//       );
+//     }
+
+//     const supabase = await getSupabaseServerClient();
+
+//     const {
+//       data: { user },
+//     } = await supabase.auth.getUser();
+
+//     if (!user) {
+//       return NextResponse.json(
+//         { error: "Unauthorized access" },
+//         { status: 401 },
+//       );
+//     }
+
+//     const sessionToken = (
+//       await supabase.auth.getSession()
+//     ).data.session?.access_token;
+
+//     if (!sessionToken) {
+//       return NextResponse.json(
+//         { error: "No active session" },
+//         { status: 401 },
+//       );
+//     }
+
+//     const response = await fetch(    
+//       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_epics?project_id=eq.${encodeURIComponent(
+//         projectId,
+//       )}&limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`,
+//       {
+//         method: "GET",
+//         headers: {
+//           apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//           Authorization: `Bearer ${sessionToken}`,
+//           "Content-Type": "application/json",
+//           Prefer: "count=exact",
+//         },
+//       },
+//     );
+
+//     const data = await response.json().catch(() => null);
+
+//     if (!response.ok) {
+//       console.error(
+//         "❌ SUPABASE GET PROJECT EPICS ERROR:",
+//         data,
+//       );
+
+//       return NextResponse.json(
+//         {
+//           error:
+//             data?.message ||
+//             data?.details ||
+//             "Failed to fetch project epics database rows",
+//         },
+//         {
+//           status: response.status,
+//         },
+//       );
+//     }
+
+//     const result = NextResponse.json(data);
+
+//     const contentRange = response.headers.get("Content-Range");
+
+//     if (contentRange) {
+//       result.headers.set("Content-Range", contentRange);
+//     }
+
+//     return result;
+//   } catch (error) {
+//     console.error(
+//       "❌ Project epics proxy error:",
+//       error,
+//     );
+
+//     return NextResponse.json(
+//       {
+//         error: "Internal Server Error",
+//       },
+//       {
+//         status: 500,
+//       },
+//     );
+//   }
+// }
+
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -276,6 +382,7 @@ export async function GET(
 
     const limit = searchParams.get("limit") ?? "10";
     const offset = searchParams.get("offset") ?? "0";
+    const search = searchParams.get("search")?.trim() ?? "";
 
     if (!projectId) {
       return NextResponse.json(
@@ -308,10 +415,18 @@ export async function GET(
       );
     }
 
-    const response = await fetch(    
-      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_epics?project_id=eq.${encodeURIComponent(
-        projectId,
-      )}&limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`,
+    const queryParams = new URLSearchParams();
+
+    queryParams.set("project_id", `eq.${projectId}`);
+    queryParams.set("limit", limit);
+    queryParams.set("offset", offset);
+
+    if (search) {
+      queryParams.set("title", `ilike.%${search}%`);
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_epics?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
