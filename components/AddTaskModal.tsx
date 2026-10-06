@@ -449,7 +449,8 @@ function TaskFields({
               epics.map((epic : any) => (
                 <option
                   key={epic.epic_id}
-                  value={epic.epic_id}
+                  value={epic.id}
+                  // value={epic.epic_id}
                 >
                   {epic.epic_id}{" "}
                   {truncateEpicTitle(epic.title)}
