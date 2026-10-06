@@ -5,7 +5,14 @@ import {
   Search,
 } from "lucide-react";
 
-export default function EmptyProjectTasksMobileLayout(){
+interface EmptyProjectTasksMobileLayoutProps {
+  onAddTask: () => void;
+}
+
+export default function EmptyProjectTasksMobileLayout({
+  onAddTask,
+}: EmptyProjectTasksMobileLayoutProps) {
+// export default function EmptyProjectTasksMobileLayout(){
       return (
           <div className="flex flex-col gap-4 mt-5.5 sm:hidden  mx-4 mb-0 max-h-228.25">
         {/* Page Header */}
@@ -31,6 +38,7 @@ export default function EmptyProjectTasksMobileLayout(){
             {/* Solid Add New Task Action Button */}
             <button
               type="button"
+              onClick={onAddTask}
               className="flex h-11 w-full items-center justify-center gap-1 rounded-md bg-[#1769E0] text-xs font-bold tracking-widest text-white shadow-sm transition-colors active:bg-[#1150ab]"
             >
               <Plus size={16} strokeWidth={2.5} />

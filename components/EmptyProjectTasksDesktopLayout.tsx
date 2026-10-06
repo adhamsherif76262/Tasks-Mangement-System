@@ -64,8 +64,14 @@ const TASK_COLUMNS = [
   },
 ] as const;
 
+interface EmptyProjectTasksDesktopLayoutProps {
+  onAddTask: () => void;
+}
 
-export default function EmptyProjectTasksDesktopLayout(){
+export default function EmptyProjectTasksDesktopLayout({
+  onAddTask,
+}: EmptyProjectTasksDesktopLayoutProps) {
+// export default function EmptyProjectTasksDesktopLayout(){
     return(
               <div className="hidden h-full min-h-0 sm:flex-col sm:flex">
         {/* Page Header */}
@@ -126,7 +132,8 @@ export default function EmptyProjectTasksDesktopLayout(){
                 count = {column.count}
                 dotClass = {column.dotClass}
                 countClass = {column.countClass}
-              key={column.id} {...column} />
+                onAddTask={onAddTask}
+                key={column.id} {...column} />
             ))}
           </div>
         </div>

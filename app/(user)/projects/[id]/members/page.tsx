@@ -55,7 +55,7 @@ const fetchMembers = async () => {
   setError(false);
 
   try {
-    const url = `/api/projects/project-members?project_id=eq.${projectId}`;
+    const url = `/api/projects/project-members?project_id=${projectId}`;
 
     const response = await fetch(url, {
       method: "GET",

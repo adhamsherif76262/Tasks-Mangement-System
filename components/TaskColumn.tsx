@@ -9,6 +9,7 @@ interface TaskColumnProps {
   count: number;
   dotClass: string;
   countClass: string;
+  onAddTask: () => void;
 }
 
 export default function TaskColumn({
@@ -16,6 +17,7 @@ export default function TaskColumn({
   count,
   dotClass,
   countClass,
+  onAddTask,
 }: TaskColumnProps) {
   return (
     <section className="flex min-w-58 flex-1 flex-col max-w-5xl p-2 h-[742px]">
@@ -40,6 +42,7 @@ export default function TaskColumn({
       {/* Add New */}
       <button
         type="button"
+        onClick={onAddTask}
         className="mb-4 flex h-10.5 w-full shrink-0 items-center justify-center gap-3 rounded-[5px] border border-dashed border-[#DDE3EF] bg-transparent text-[11px] font-bold tracking-widest text-[#9298A7] transition-colors hover:bg-[#F8F9FC]"
       >
         <Plus

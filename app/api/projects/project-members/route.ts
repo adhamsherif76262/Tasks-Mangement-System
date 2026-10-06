@@ -179,7 +179,7 @@ export async function GET(request: Request) {
     }
 
     const supabaseUrl =
-      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/get_project_members?project_id=${projectId}`;
+      `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/get_project_members?project_id=eq.${projectId}`;
 
     const response = await fetch(
       supabaseUrl,
