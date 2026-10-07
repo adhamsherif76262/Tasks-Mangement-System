@@ -62,6 +62,7 @@ export function EpicDetailsModal({
         const data: Epic = await res.json();
         setEpic(data);
         setStatus("success");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error("Error loading single epic context details:", err);
         setErrorMessage(err?.message || "Something went wrong loading epic details.");
@@ -221,7 +222,7 @@ export function EpicDetailsModal({
               </div>
 
               {/* Tasks Empty State Section */}
-              <EpicTasksSection />
+              <EpicTasksSection projectId={projectId} epicId={epic.id} />
 
             </div>
           )}

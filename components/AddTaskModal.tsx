@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
+import { useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
-  Check,
+  CheckCircle,
   ChevronDown,
   Loader2,
   X,
@@ -16,6 +17,7 @@ import useCreateTask, {
 interface AddTaskModalProps {
   projectId: string;
   isOpen: boolean;
+  initialEpicId?: string | null;
   onClose: () => void;
 }
 
@@ -38,58 +40,133 @@ function truncateEpicTitle(title: string) {
 
 export default function AddTaskModal({
   projectId,
+  initialEpicId = null,
   isOpen,
   onClose,
 }: AddTaskModalProps) {
+
+  const [showSuccess, setShowSuccess] = useState(false);
+const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // const {
+  //   title,
+  //   setTitle,
+
+  //   description,
+  //   setDescription,
+
+  //   epicId,
+  //   setEpicId,
+
+  //   assigneeId,
+  //   setAssigneeId,
+
+  //   dueDate,
+  //   setDueDate,
+
+  //   status,
+  //   setStatus,
+
+  //   epics,
+  //   members,
+
+  //   epicsLoading,
+  //   membersLoading,
+
+  //   epicsError,
+  //   membersError,
+
+  //   submitError,
+  //   isSubmitting,
+
+  //   submitTask,
+  // } = useCreateTask({
+  //   projectId,
+  //   isOpen,
+  //   onSuccess: onClose,
+  // });
+
   const {
-    title,
-    setTitle,
+  title,
+  setTitle,
 
-    description,
-    setDescription,
+  description,
+  setDescription,
 
-    epicId,
-    setEpicId,
+  epicId,
+  setEpicId,
 
-    assigneeId,
-    setAssigneeId,
+  assigneeId,
+  setAssigneeId,
 
-    dueDate,
-    setDueDate,
+  dueDate,
+  setDueDate,
 
-    status,
-    setStatus,
+  status,
+  setStatus,
 
-    epics,
-    members,
+  epics,
+  members,
 
-    epicsLoading,
-    membersLoading,
+  epicsLoading,
+  membersLoading,
 
-    epicsError,
-    membersError,
+  epicsError,
+  membersError,
 
-    submitError,
-    isSubmitting,
+  submitError,
+  isSubmitting,
 
-    submitTask,
-  } = useCreateTask({
-    projectId,
-    isOpen,
-    onSuccess: onClose,
-  });
+  submitTask,
+} = useCreateTask({
+  projectId,
+  isOpen,
+  initialEpicId,
+});
+
+useEffect(() => {
+  return () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+  };
+}, []);
 
   if (!isOpen) {
     return null;
   }
 
-  const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
-    event.preventDefault();
+  // const handleSubmit = async (
+  //   event: React.FormEvent<HTMLFormElement>,
+  // ) => {
+  //   event.preventDefault();
 
-    await submitTask();
-  };
+  //   await submitTask();
+  // };
+
+
+  const handleSubmit = async (
+  event: React.FormEvent<HTMLFormElement>,
+) => {
+  event.preventDefault();
+
+  if (isSubmitting || showSuccess) {
+    return;
+  }
+
+  const success = await submitTask();
+
+  if (!success) {
+    return;
+  }
+
+  setShowSuccess(true);
+
+  closeTimeoutRef.current = setTimeout(() => {
+    setShowSuccess(false);
+    onClose();
+  }, 3000);
+};
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-[#0B2347]/35 backdrop-blur-[4px] sm:items-center">
@@ -99,6 +176,30 @@ export default function AddTaskModal({
         aria-labelledby="add-task-title"
         className="relative flex max-h-[calc(100vh-24px)] w-full flex-col overflow-hidden rounded-t-[28px] bg-[#F2F4FF] shadow-2xl sm:h-[870px] sm:max-h-[calc(100vh-40px)] sm:w-[896px] sm:flex-row sm:rounded-[9px]"
       >
+
+        {showSuccess && (
+  <div className="pointer-events-none fixed left-1/2 top-6 z-[120] w-[calc(100%-32px)] max-w-[390px] -translate-x-1/2 sm:top-8">
+    <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-white px-4 py-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.14)]">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+        <CheckCircle
+          size={20}
+          strokeWidth={2.2}
+          className="text-emerald-600"
+        />
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[13px] font-bold text-[#09254D]">
+          Task created successfully
+        </p>
+
+        <p className="mt-0.5 text-[11px] text-[#71809A]">
+          Your new task has been added to the project.
+        </p>
+      </div>
+    </div>
+  </div>
+)}
         {/* Mobile drag handle */}
         <div className="absolute left-1/2 top-8 h-1.5 w-12 -translate-x-1/2 rounded-full bg-[#DCE1EF] sm:hidden" />
 
@@ -106,7 +207,7 @@ export default function AddTaskModal({
         <button
           type="button"
           onClick={onClose}
-          disabled={isSubmitting}
+          disabled={isSubmitting || showSuccess}
           aria-label="Close"
           className="absolute right-7 top-7 z-10 text-[#3E4657] transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40 sm:right-7 sm:top-8"
         >
@@ -144,7 +245,7 @@ export default function AddTaskModal({
                     setTitle(event.target.value)
                   }
                   placeholder="e.g., Finalize structural schematics"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || showSuccess}
                   className="h-[55px] w-full rounded-[10px] border border-[#D3DEFF] bg-white px-3 text-[14px] text-[#09254D] outline-none placeholder:text-[#707789] focus:border-[#1769E0] disabled:opacity-60"
                 />
               </div>
@@ -165,10 +266,45 @@ export default function AddTaskModal({
                     setDescription(event.target.value)
                   }
                   placeholder="Provide detailed context for this task..."
-                  disabled={isSubmitting}
-                  className="h-[250px] w-full resize-none rounded-[10px] border border-[#D3DEFF] bg-white px-3 py-3 text-[14px] leading-[1.55] text-[#09254D] outline-none placeholder:text-[#707789] focus:border-[#1769E0] disabled:opacity-60 sm:h-[472px]"
+                  disabled={isSubmitting || showSuccess}
+                  className="w-full rounded-[10px] border border-[#D3DEFF] bg-white px-3 py-3 text-[14px] leading-[1.55] text-[#09254D] outline-none placeholder:text-[#707789] focus:border-[#1769E0] disabled:opacity-60 [@media(min-height:900px)]:h-118 h-80 resize-none"
                 />
               </div>
+            <div className="flex max-sm:hidden items-center absolute bottom-0 w-[65%] left-0 justify-between bg-[#F2F4FF] px-8 py-4 ">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting || showSuccess}
+                className="h-9 rounded-[4px] bg-[#D8E4FF] px-4 text-[14px] font-medium text-[#09254D] transition-colors hover:bg-[#C9D8FC] disabled:opacity-50"
+              >
+                Close
+              </button>
+
+              <div className="flex flex-col items-end">
+                {submitError && (
+                  <p className="mb-2 max-w-[190px] text-right text-[11px] font-medium text-[#D21F26]">
+                    {submitError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || showSuccess}
+                  className="flex h-10 min-w-[124px] items-center justify-center gap-2 rounded-[4px] bg-[#0757C8] px-5 text-[14px] font-bold text-white transition-colors hover:bg-[#0649A7] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting && (
+                    <Loader2
+                      size={16}
+                      className="animate-spin"
+                    />
+                  )}
+
+                  {isSubmitting || showSuccess
+                    ? "Adding..."
+                    : "Add Task"}
+                </button>
+              </div>
+            </div>
 
               {/* Mobile fields */}
               <div className="sm:hidden">
@@ -187,7 +323,10 @@ export default function AddTaskModal({
                   membersLoading={membersLoading}
                   epicsError={epicsError}
                   membersError={membersError}
-                  isSubmitting={isSubmitting}
+                  showSuccess={showSuccess}
+                  isSubmitting={isSubmitting || showSuccess}
+                  onClose={onClose}
+                  submitError={submitError}
                 />
               </div>
             </div>
@@ -202,7 +341,7 @@ export default function AddTaskModal({
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || showSuccess}
                 className="flex h-10 w-full items-center justify-center gap-2 rounded-[4px] bg-[#0757C8] text-[14px] font-bold text-white transition-colors hover:bg-[#0649A7] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting && (
@@ -212,7 +351,7 @@ export default function AddTaskModal({
                   />
                 )}
 
-                {isSubmitting ? "Adding Task..." : "Add Task"}
+                {isSubmitting || showSuccess ? "Adding Task..." : "Add Task"}
               </button>
             </div>
           </div>
@@ -235,45 +374,13 @@ export default function AddTaskModal({
                 membersLoading={membersLoading}
                 epicsError={epicsError}
                 membersError={membersError}
-                isSubmitting={isSubmitting}
+                showSuccess = {showSuccess}
+                isSubmitting={isSubmitting || showSuccess}
+                onClose={onClose}
+                submitError={submitError}
               />
             </div>
 
-            <div className="flex items-center justify-between bg-[#F2F4FF] px-8 py-4">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="h-9 rounded-[4px] bg-[#D8E4FF] px-4 text-[14px] font-medium text-[#09254D] transition-colors hover:bg-[#C9D8FC] disabled:opacity-50"
-              >
-                Close
-              </button>
-
-              <div className="flex flex-col items-end">
-                {submitError && (
-                  <p className="mb-2 max-w-[190px] text-right text-[11px] font-medium text-[#D21F26]">
-                    {submitError}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex h-10 min-w-[124px] items-center justify-center gap-2 rounded-[4px] bg-[#0757C8] px-5 text-[14px] font-bold text-white transition-colors hover:bg-[#0649A7] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isSubmitting && (
-                    <Loader2
-                      size={16}
-                      className="animate-spin"
-                    />
-                  )}
-
-                  {isSubmitting
-                    ? "Adding..."
-                    : "Add Task"}
-                </button>
-              </div>
-            </div>
           </div>
         </form>
       </div>
@@ -303,7 +410,10 @@ interface TaskFieldsProps {
   epicsError: string;
   membersError: string;
 
+  showSuccess: boolean;
   isSubmitting: boolean;
+  onClose: () => void;
+  submitError: string;
 }
 
 function TaskFields({
@@ -322,6 +432,9 @@ function TaskFields({
   epicsError,
   membersError,
   isSubmitting,
+  showSuccess,
+  onClose,
+  submitError
 }: TaskFieldsProps) {
   return (
     <div className="space-y-6">
@@ -343,7 +456,7 @@ function TaskFields({
                 event.target.value as typeof status,
               )
             }
-            disabled={isSubmitting}
+            disabled={isSubmitting || showSuccess}
             className="h-10 w-full appearance-none rounded-[7px] border border-[#D3DEFF] bg-white px-3 pr-10 text-[13px] text-[#09254D] outline-none focus:border-[#1769E0] disabled:opacity-60"
           >
             {TASK_STATUSES.map((taskStatus : any) => (
@@ -381,6 +494,7 @@ function TaskFields({
             }
             disabled={
               isSubmitting ||
+              showSuccess ||
               membersLoading ||
               !!membersError
             }
@@ -398,7 +512,13 @@ function TaskFields({
                   key={member.id}
                   value={member.id}
                 >
+                  <span className="mr-2 inline-block h-4 w-4 rounded-full text-[10px] font-black text-[#09254D]">
+                    {getInitials(member.name)}
+                  </span>{" "}
+                  <span>
+
                   {member.name}
+                  </span>
                 </option>
               ))}
           </select>
@@ -434,6 +554,7 @@ function TaskFields({
             }
             disabled={
               isSubmitting ||
+              showSuccess ||
               epicsLoading ||
               !!epicsError
             }
@@ -494,7 +615,7 @@ function TaskFields({
             onChange={(event) =>
               setDueDate(event.target.value)
             }
-            disabled={isSubmitting}
+            disabled={isSubmitting || showSuccess}
             className="h-10 w-full rounded-[7px] border border-[#D3DEFF] bg-white pl-10 pr-3 text-[13px] text-[#09254D] outline-none focus:border-[#1769E0] disabled:opacity-60"
           />
         </div>

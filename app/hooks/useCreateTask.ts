@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -111,42 +112,6 @@ export default function useCreateTask({
     }
   }, [projectId]);
 
-//   const loadMembers = useCallback(async () => {
-//     if (!projectId) return;
-
-//     setMembersLoading(true);
-//     setMembersError("");
-
-//     try {
-//       const response = await fetch(
-//         `/api/projects/project-members?project_id=${encodeURIComponent(
-//           projectId,
-//         )}`,
-//       );
-
-//       const data = await response.json().catch(() => null);
-
-//       if (!response.ok) {
-//         throw new Error(
-//           data?.error || "Failed to load project members.",
-//         );
-//       }
-
-//       setMembers(Array.isArray(data) ? data : []);
-//     } catch (error) {
-//       console.error("Failed to load task members:", error);
-
-//       setMembers([]);
-//       setMembersError(
-//         error instanceof Error
-//           ? error.message
-//           : "Failed to load project members.",
-//       );
-//     } finally {
-//       setMembersLoading(false);
-//     }
-//   }, [projectId]);
-
 const loadMembers = useCallback(async () => {
   if (!projectId) return;
 
@@ -217,7 +182,8 @@ const loadMembers = useCallback(async () => {
     );
 
     if (matchingEpic) {
-      setEpicId(matchingEpic.epic_id);
+      // setEpicId(matchingEpic.epic_id);
+      setEpicId(matchingEpic.id);
     }
   }, [isOpen, initialEpicId, epics]);
 

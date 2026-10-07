@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
@@ -77,7 +78,7 @@ export default function CreateEpicPage() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await fetch(`/api/projects/project-members?project_id=eq.${projectId}`, { method: "GET" });
+        const response = await fetch(`/api/projects/project-members?project_id=${projectId}`, { method: "GET" });
         if (!response.ok) throw new Error();
         const result = await response.json();
         const mappedMembers = result.map((m: any) => ({
@@ -90,7 +91,7 @@ export default function CreateEpicPage() {
         console.log(members)
         setMembersState(mappedMembers.length === 0 ? "empty" : "success");
       } catch (error) {
-        setMembersState("error");
+        setMembersState(error ? "error" : "empty");
       }
     };
     fetchMembers();
