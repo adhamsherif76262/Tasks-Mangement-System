@@ -1,0 +1,36 @@
+name: Sync with User B
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs automatically every hour (Change to your preference)
+  workflow_dispatch: # Allows User A to trigger it manually via the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository A
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SYNC_TOKEN }}
+          persist-credentials: true
+
+      - name: Fetch and Merge changes from User B
+        run: |
+          # 1. Configure git credentials
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          
+          # 2. Add User B's repo as a remote source
+          git remote add upstream https://github.com/KratosZEUS5001/Tasks-Mangement-System
+          
+          # 3. Fetch changes
+          git fetch upstream
+          
+          # 4. Checkout your main branch and merge User B's main branch
+          git checkout main
+          git merge upstream/main --allow-unrelated-histories -m "Automated sync from User B"
+          
+          # 5. Push the updated code back to Repository A
+          git push origin main
