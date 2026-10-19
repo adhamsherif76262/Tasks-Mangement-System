@@ -120,6 +120,7 @@ const {
   useEffect(() => {
   if (!epic) return;
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   setTitleDraft(epic.title);
   setDescriptionDraft(epic.description ?? "");
   setDeadlineDraft(epic.deadline?.slice(0, 10) ?? "");

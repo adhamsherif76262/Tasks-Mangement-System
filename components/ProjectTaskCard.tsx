@@ -7,6 +7,7 @@ import type { ProjectTask } from "@/app/hooks/useProjectTasks";
 interface ProjectTaskCardProps {
   task: ProjectTask;
   mobile?: boolean;
+  onClick?: () => void;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -65,6 +66,7 @@ function getInitials(name?: string | null) {
 export default function ProjectTaskCard({
   task,
   mobile = false,
+  onClick,
 }: ProjectTaskCardProps) {
   const dueDate = formatDueDate(task.due_date);
   const isDone = task.status === "DONE";
@@ -72,6 +74,8 @@ export default function ProjectTaskCard({
 
   return (
     <article
+    onClick={onClick}
+
       className={`min-w-0 rounded-lg border p-4 shadow-[0_2px_12px_rgba(15,23,42,0.025)] ${
         isBlocked
           ? "border-[#F6D6DB] bg-[#FCF4F6]"

@@ -63,7 +63,6 @@ export default function Loginpage() {
 
       localStorage.removeItem("auth_session");
       sessionStorage.removeItem("auth_session");
-
       router.push("/projects");
       router.refresh(); 
     } catch (error) {

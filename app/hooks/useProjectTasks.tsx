@@ -177,6 +177,7 @@ export default function useProjectTasks(projectId: string) {
   useEffect(() => {
     const controller = new AbortController();
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setColumns(createInitialState());
 
     TASK_COLUMNS.forEach(({ status }) => {
