@@ -14,23 +14,42 @@ export default function ProjectTasksPage() {
 
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
 
-  const { columns, retryColumn, refreshAll } = useProjectTasks(projectId);
+  // const { columns, retryColumn, refreshAll } = useProjectTasks(projectId);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+const {
+  columns,
+  retryColumn,
+  loadMoreColumn,
+  mobileTasks,
+  loadMoreMobileTasks,
+  retryMobileTasks,
+  refreshAll,
+} = useProjectTasks(projectId);
 
   return (
     <section>
       <EmptyProjectTasksDesktopLayout
         columns={columns}
         onRetry={retryColumn}
+          onLoadMore={loadMoreColumn}
         onAddTask={() => setIsAddTaskOpen(true)}
       />
 
-      <EmptyProjectTasksMobileLayout
+      {/* <EmptyProjectTasksMobileLayout
         columns={columns}
         onRetry={retryColumn}
         onAddTask={() => setIsAddTaskOpen(true)}
         onTaskClick={(task) => setSelectedTaskId(task.id)}
-      />
+      /> */}
+
+<EmptyProjectTasksMobileLayout
+  mobile={mobileTasks}
+  onRetry={retryMobileTasks}
+  onLoadMore={loadMoreMobileTasks}
+  onAddTask={() => setIsAddTaskOpen(true)}
+  onTaskClick={(task) => setSelectedTaskId(task.id)}
+/>
 
       <AddTaskModal
         projectId={projectId}

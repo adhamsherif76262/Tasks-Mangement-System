@@ -16,6 +16,7 @@ interface Props {
   columns: ReturnType<typeof useProjectTasks>["columns"];
   onRetry: (status: TaskStatus) => void;
   onAddTask: () => void;
+  onLoadMore: (status: TaskStatus) => void;
 }
 
 export default function EmptyProjectTasksDesktopLayout({
@@ -23,6 +24,7 @@ export default function EmptyProjectTasksDesktopLayout({
   columns,
   onRetry,
   onAddTask,
+  onLoadMore,
 }: Props) {
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -72,20 +74,38 @@ export default function EmptyProjectTasksDesktopLayout({
             const state = columns[column.status];
 
             return (
-              <TaskColumn
-                key={column.status}
-                status={column.status}
-                label={column.label}
-                dotClass={column.dotClass}
-                countClass={column.countClass}
-                tasks={state.tasks}
-                isLoading={state.isLoading}
-                error={state.error}
-                onRetry={onRetry}
-                onAddTask={onAddTask}
-                onTaskClick={(task) => setSelectedTaskId(task.id)}
-              />
+              // <TaskColumn
+              //   key={column.status}
+              //   status={column.status}
+              //   label={column.label}
+              //   dotClass={column.dotClass}
+              //   countClass={column.countClass}
+              //   tasks={state.tasks}
+              //   isLoading={state.isLoading}
+              //   error={state.error}
+              //   onRetry={onRetry}
+              //   onAddTask={onAddTask}
+              //   onTaskClick={(task) => setSelectedTaskId(task.id)}
+              // />
 
+              <TaskColumn
+  key={column.status}
+  status={column.status}
+  label={column.label}
+  dotClass={column.dotClass}
+  countClass={column.countClass}
+  tasks={state.tasks}
+  isLoading={state.isLoading}
+  error={state.error}
+  totalCount={state.totalCount}
+  hasMore={state.hasMore}
+  isLoadingMore={state.isLoadingMore}
+  loadMoreError={state.loadMoreError}
+  onRetry={onRetry}
+  onLoadMore={onLoadMore}
+  onAddTask={onAddTask}
+  onTaskClick={(task) => setSelectedTaskId(task.id)}
+/>
             );
           })}
         </div>

@@ -217,6 +217,127 @@ export async function POST(
   }
 }
 
+// export async function GET(
+//   request: Request,
+//   { params }: { params: Promise<{ id: string }> },
+// ) {
+//   try {
+//     const { id: projectId } = await params;
+//     const { searchParams } = new URL(request.url);
+//     const status = searchParams.get("status");
+
+//     const allowedStatuses = [
+//       "TO_DO",
+//       "IN_PROGRESS",
+//       "BLOCKED",
+//       "IN_REVIEW",
+//       "READY_FOR_QA",
+//       "REOPENED",
+//       "READY_FOR_PRODUCTION",
+//       "DONE",
+//     ];
+
+//     if (!projectId || !status || !allowedStatuses.includes(status)) {
+//       return NextResponse.json(
+//         { error: "A valid project ID and task status are required." },
+//         { status: 400 },
+//       );
+//     }
+
+//     const cookieStore = await cookies();
+
+//     const supabase = createServerClient(
+//       process.env.NEXT_PUBLIC_BASE_URL!,
+//       process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//       {
+//         cookies: {
+//           getAll() {
+//             return cookieStore.getAll();
+//           },
+//           setAll(cookiesToSet) {
+//             cookiesToSet.forEach(({ name, value, options }) => {
+//               cookieStore.set(name, value, {
+//                 ...options,
+//                 httpOnly: true,
+//                 secure: process.env.NODE_ENV === "production",
+//                 sameSite: "lax",
+//               });
+//             });
+//           },
+//         },
+//       },
+//     );
+
+//     const {
+//       data: { user },
+//     } = await supabase.auth.getUser();
+
+//     if (!user) {
+//       return NextResponse.json(
+//         { error: "Unauthorized access." },
+//         { status: 401 },
+//       );
+//     }
+
+//     const sessionToken = (
+//       await supabase.auth.getSession()
+//     ).data.session?.access_token;
+
+//     if (!sessionToken) {
+//       return NextResponse.json(
+//         { error: "No active session." },
+//         { status: 401 },
+//       );
+//     }
+
+//     const query = new URLSearchParams({
+//       select: "*",
+//       project_id: `eq.${projectId}`,
+//       status: `eq.${status}`,
+//     });
+
+//     const response = await fetch(
+//       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_tasks?${query.toString()}`,
+//       {
+//         method: "GET",
+//         headers: {
+//           apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
+//           Authorization: `Bearer ${sessionToken}`,
+//           "Content-Type": "application/json",
+//         },
+//         cache: "no-store",
+//       },
+//     );
+
+//     const data = await response.json().catch(() => null);
+
+//     if (!response.ok) {
+//       console.error("Supabase GET project tasks error:", data);
+
+//       return NextResponse.json(
+//         {
+//           error:
+//             data?.message ||
+//             data?.details ||
+//             "Failed to fetch project tasks.",
+//         },
+//         { status: response.status },
+//       );
+//     }
+
+//     return NextResponse.json(Array.isArray(data) ? data : []);
+//   } catch (error) {
+//     console.error("Project tasks GET proxy error:", error);
+
+//     return NextResponse.json(
+//       { error: "Failed to fetch project tasks." },
+//       { status: 500 },
+//     );
+//   }
+// }
+
+
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -224,22 +345,42 @@ export async function GET(
   try {
     const { id: projectId } = await params;
     const { searchParams } = new URL(request.url);
+
     const status = searchParams.get("status");
+    const rawLimit = searchParams.get("limit");
+    const rawOffset = searchParams.get("offset");
 
-    const allowedStatuses = [
-      "TO_DO",
-      "IN_PROGRESS",
-      "BLOCKED",
-      "IN_REVIEW",
-      "READY_FOR_QA",
-      "REOPENED",
-      "READY_FOR_PRODUCTION",
-      "DONE",
-    ];
+    // Defaults maintain compatibility with existing callers
+    // while the frontend pagination hook is being updated.
+    const limit = rawLimit === null ? 10 : Number(rawLimit);
+    const offset = rawOffset === null ? 0 : Number(rawOffset);
 
-    if (!projectId || !status || !allowedStatuses.includes(status)) {
+    if (!projectId) {
       return NextResponse.json(
-        { error: "A valid project ID and task status are required." },
+        { error: "Project ID is required." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      !Number.isSafeInteger(limit) ||
+      limit < 1 ||
+      limit > 100 ||
+      !Number.isSafeInteger(offset) ||
+      offset < 0
+    ) {
+      return NextResponse.json(
+        { error: "Invalid pagination parameters." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      status !== null &&
+      !TASK_STATUSES.includes(status as TaskStatus)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid task status." },
         { status: 400 },
       );
     }
@@ -293,8 +434,16 @@ export async function GET(
     const query = new URLSearchParams({
       select: "*",
       project_id: `eq.${projectId}`,
-      status: `eq.${status}`,
+      limit: String(limit),
+      offset: String(offset),
+      order: "created_at.desc,id.asc",
     });
+
+    // Desktop: fetch a particular status column.
+    // Mobile: omit status to fetch tasks across all statuses.
+    if (status !== null) {
+      query.set("status", `eq.${status}`);
+    }
 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_tasks?${query.toString()}`,
@@ -304,6 +453,7 @@ export async function GET(
           apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
           Authorization: `Bearer ${sessionToken}`,
           "Content-Type": "application/json",
+          Prefer: "count=exact",
         },
         cache: "no-store",
       },
@@ -325,7 +475,22 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(Array.isArray(data) ? data : []);
+    if (!Array.isArray(data)) {
+      return NextResponse.json(
+        { error: "Invalid response received while fetching tasks." },
+        { status: 502 },
+      );
+    }
+
+    // Preserve the backend's pagination metadata for the frontend.
+    const contentRange = response.headers.get("content-range");
+    const headers = new Headers();
+
+    if (contentRange) {
+      headers.set("Content-Range", contentRange);
+    }
+
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error("Project tasks GET proxy error:", error);
 
