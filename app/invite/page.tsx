@@ -186,10 +186,10 @@ function InvitePageContent() {
 
         if (projectId) {
           router.replace(
-            `/project/${encodeURIComponent(projectId)}/tasks`,
+            `/projects/${encodeURIComponent(projectId)}/tasks`,
           );
         } else {
-          router.replace("/project");
+          router.replace("/projects");
         }
       }, 1200);
     } catch {
