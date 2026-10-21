@@ -47,45 +47,6 @@ export default function AddTaskModal({
 
   const [showSuccess, setShowSuccess] = useState(false);
 const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // const {
-  //   title,
-  //   setTitle,
-
-  //   description,
-  //   setDescription,
-
-  //   epicId,
-  //   setEpicId,
-
-  //   assigneeId,
-  //   setAssigneeId,
-
-  //   dueDate,
-  //   setDueDate,
-
-  //   status,
-  //   setStatus,
-
-  //   epics,
-  //   members,
-
-  //   epicsLoading,
-  //   membersLoading,
-
-  //   epicsError,
-  //   membersError,
-
-  //   submitError,
-  //   isSubmitting,
-
-  //   submitTask,
-  // } = useCreateTask({
-  //   projectId,
-  //   isOpen,
-  //   onSuccess: onClose,
-  // });
-
   const {
   title,
   setTitle,
@@ -135,15 +96,6 @@ useEffect(() => {
   if (!isOpen) {
     return null;
   }
-
-  // const handleSubmit = async (
-  //   event: React.FormEvent<HTMLFormElement>,
-  // ) => {
-  //   event.preventDefault();
-
-  //   await submitTask();
-  // };
-
 
   const handleSubmit = async (
   event: React.FormEvent<HTMLFormElement>,
@@ -436,6 +388,39 @@ function TaskFields({
   onClose,
   submitError
 }: TaskFieldsProps) {
+
+//   const findDuplicates = <T,>(
+//   items: T[],
+//   getKey: (item: T) => string | undefined,
+// ) => {
+//   const seen = new Set<string>();
+
+//   return items.filter((item) => {
+//     const key = getKey(item);
+
+//     if (!key) return false;
+//     if (seen.has(key)) return true;
+
+//     seen.add(key);
+//     return false;
+//   });
+// };
+
+// console.log(
+//   "Duplicate member IDs:",
+//   findDuplicates(members, (member: any) => member.id),
+// );
+
+// console.log(
+//   "Duplicate epic IDs:",
+//   findDuplicates(epics, (epic: any) => epic.id),
+// );
+
+// console.log(
+//   "Duplicate epic identifiers:",
+//   findDuplicates(epics, (epic: any) => epic.epic_id),
+// );
+
   return (
     <div className="space-y-6">
       {/* Status */}
@@ -507,20 +492,30 @@ function TaskFields({
             </option>
 
             {!membersLoading &&
-              members.map((member : any) => (
-                <option
-                  key={member.id}
-                  value={member.id}
-                >
-                  <span className="mr-2 inline-block h-4 w-4 rounded-full text-[10px] font-black text-[#09254D]">
-                    {getInitials(member.name)}
-                  </span>{" "}
-                  <span>
+            
+              [...new Map(members.map((member: any) => [member.id, member])).values()].map(
+                (member: any) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                  </option>
+                ),
+              )
 
-                  {member.name}
-                  </span>
-                </option>
-              ))}
+              // members.map((member : any) => (
+              //   <option
+              //     key={member.id}
+              //     value={member.id}
+              //   >
+              //     <span className="mr-2 inline-block h-4 w-4 rounded-full text-[10px] font-black text-[#09254D]">
+              //       {getInitials(member.name)}
+              //     </span>{" "}
+              //     <span>
+
+              //     {member.name}
+              //     </span>
+              //   </option>
+              // ))}
+            }
           </select>
 
           <ChevronDown
@@ -569,7 +564,7 @@ function TaskFields({
             {!epicsLoading &&
               epics.map((epic : any) => (
                 <option
-                  key={epic.epic_id}
+                  key={epic.id}
                   value={epic.id}
                   // value={epic.epic_id}
                 >

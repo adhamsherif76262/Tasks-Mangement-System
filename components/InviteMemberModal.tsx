@@ -268,7 +268,7 @@ export default function InviteMemberModal({
             </p>
           )}
 
-          <div className="mt-10 flex items-center justify-end gap-3">
+          <div className="mt-10 flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={onClose}

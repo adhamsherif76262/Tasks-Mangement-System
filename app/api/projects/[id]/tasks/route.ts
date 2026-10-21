@@ -224,22 +224,42 @@ export async function POST(
 //   try {
 //     const { id: projectId } = await params;
 //     const { searchParams } = new URL(request.url);
+
 //     const status = searchParams.get("status");
+//     const rawLimit = searchParams.get("limit");
+//     const rawOffset = searchParams.get("offset");
 
-//     const allowedStatuses = [
-//       "TO_DO",
-//       "IN_PROGRESS",
-//       "BLOCKED",
-//       "IN_REVIEW",
-//       "READY_FOR_QA",
-//       "REOPENED",
-//       "READY_FOR_PRODUCTION",
-//       "DONE",
-//     ];
+//     // Defaults maintain compatibility with existing callers
+//     // while the frontend pagination hook is being updated.
+//     const limit = rawLimit === null ? 10 : Number(rawLimit);
+//     const offset = rawOffset === null ? 0 : Number(rawOffset);
 
-//     if (!projectId || !status || !allowedStatuses.includes(status)) {
+//     if (!projectId) {
 //       return NextResponse.json(
-//         { error: "A valid project ID and task status are required." },
+//         { error: "Project ID is required." },
+//         { status: 400 },
+//       );
+//     }
+
+//     if (
+//       !Number.isSafeInteger(limit) ||
+//       limit < 1 ||
+//       limit > 100 ||
+//       !Number.isSafeInteger(offset) ||
+//       offset < 0
+//     ) {
+//       return NextResponse.json(
+//         { error: "Invalid pagination parameters." },
+//         { status: 400 },
+//       );
+//     }
+
+//     if (
+//       status !== null &&
+//       !TASK_STATUSES.includes(status as TaskStatus)
+//     ) {
+//       return NextResponse.json(
+//         { error: "Invalid task status." },
 //         { status: 400 },
 //       );
 //     }
@@ -293,8 +313,16 @@ export async function POST(
 //     const query = new URLSearchParams({
 //       select: "*",
 //       project_id: `eq.${projectId}`,
-//       status: `eq.${status}`,
+//       limit: String(limit),
+//       offset: String(offset),
+//       order: "created_at.desc,id.asc",
 //     });
+
+//     // Desktop: fetch a particular status column.
+//     // Mobile: omit status to fetch tasks across all statuses.
+//     if (status !== null) {
+//       query.set("status", `eq.${status}`);
+//     }
 
 //     const response = await fetch(
 //       `${process.env.NEXT_PUBLIC_BASE_URL}/rest/v1/project_tasks?${query.toString()}`,
@@ -304,6 +332,7 @@ export async function POST(
 //           apikey: process.env.NEXT_PUBLIC_SECRET_KEYS!,
 //           Authorization: `Bearer ${sessionToken}`,
 //           "Content-Type": "application/json",
+//           Prefer: "count=exact",
 //         },
 //         cache: "no-store",
 //       },
@@ -325,7 +354,22 @@ export async function POST(
 //       );
 //     }
 
-//     return NextResponse.json(Array.isArray(data) ? data : []);
+//     if (!Array.isArray(data)) {
+//       return NextResponse.json(
+//         { error: "Invalid response received while fetching tasks." },
+//         { status: 502 },
+//       );
+//     }
+
+//     // Preserve the backend's pagination metadata for the frontend.
+//     const contentRange = response.headers.get("content-range");
+//     const headers = new Headers();
+
+//     if (contentRange) {
+//       headers.set("Content-Range", contentRange);
+//     }
+
+//     return NextResponse.json(data, { headers });
 //   } catch (error) {
 //     console.error("Project tasks GET proxy error:", error);
 
@@ -347,11 +391,13 @@ export async function GET(
     const { searchParams } = new URL(request.url);
 
     const status = searchParams.get("status");
+    const rawTitle = searchParams.get("title");
+    const title = rawTitle?.trim() ?? "";
+
     const rawLimit = searchParams.get("limit");
     const rawOffset = searchParams.get("offset");
 
-    // Defaults maintain compatibility with existing callers
-    // while the frontend pagination hook is being updated.
+    // Preserve compatibility with existing callers.
     const limit = rawLimit === null ? 10 : Number(rawLimit);
     const offset = rawOffset === null ? 0 : Number(rawOffset);
 
@@ -439,10 +485,19 @@ export async function GET(
       order: "created_at.desc,id.asc",
     });
 
-    // Desktop: fetch a particular status column.
-    // Mobile: omit status to fetch tasks across all statuses.
+    // Keep board columns scoped to their individual statuses.
+    // Mobile can omit status to search across all statuses.
     if (status !== null) {
       query.set("status", `eq.${status}`);
+    }
+
+    // Search the title using case-insensitive, partial matching.
+    // URLSearchParams encodes the percent signs in the ilike pattern.
+    // An empty or whitespace-only title intentionally adds no filter.
+    if (title) {
+      // query.set("title", `ilike.%${title}%`);
+      const escapedTitle = title.replace(/[\\%_*]/g, "\\$&");
+      query.set("title", `ilike.%${escapedTitle}%`);
     }
 
     const response = await fetch(
@@ -482,7 +537,7 @@ export async function GET(
       );
     }
 
-    // Preserve the backend's pagination metadata for the frontend.
+    // Preserve the exact count supplied by PostgREST.
     const contentRange = response.headers.get("content-range");
     const headers = new Headers();
 
@@ -500,3 +555,4 @@ export async function GET(
     );
   }
 }
+
