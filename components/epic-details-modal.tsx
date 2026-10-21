@@ -14,26 +14,6 @@ interface EpicDetailsModalProps {
   projectId: string;
   onClose: () => void;
 }
-
-// interface EpicUser {
-//   sub: string;
-//   name: string;
-//   email: string;
-//   department: string | null;
-// }
-
-// interface Epic {
-//   id: string;
-//   project_id: string;
-//   title: string;
-//   description: string | null;
-//   created_at: string;
-//   deadline: string | null;
-//   epic_id: string;
-//   created_by: EpicUser;
-//   assignee: EpicUser;
-// }
-
 interface EpicUser {
   sub: string;
   name: string;

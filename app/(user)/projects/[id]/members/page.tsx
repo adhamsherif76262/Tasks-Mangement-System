@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import InviteMemberModal from "@/components/InviteMemberModal";
 import {
   UserPlus,
   RefreshCw,
@@ -33,7 +35,7 @@ export default function ProjectMembersPage() {
 
   // const [sidebarCollapsed, setSidebarCollapsed] =
   //   useState(false);
-
+const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [members, setMembers] = useState<
     ProjectMember[]
   >([]);
@@ -144,18 +146,7 @@ const fetchMembers = async () => {
 
   return (
     <div className="flex min-h-screen w-full bg-[#F9F9FF]">
-      {/* <AppSidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() =>
-          setSidebarCollapsed(
-            (previous) => !previous,
-          )
-        }
-      /> */}
-
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* <AppNavbar /> */}
-
         <main className="min-h-[calc(100vh-84px)] flex-1">
           <div className="mx-auto w-full max-w-[1280px] px-4 py-8 md:px-8 md:py-8 lg:px-12">
             {/* Desktop Header */}
@@ -190,6 +181,7 @@ const fetchMembers = async () => {
 
               <button
                 type="button"
+                  onClick={() => setIsInviteModalOpen(true)}
                 className="flex h-11 items-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-white shadow-[0_10px_20px_-12px_#003D9B] transition hover:bg-primary-container"
               >
                 <UserPlus size={18} />
@@ -397,6 +389,8 @@ const fetchMembers = async () => {
                   {/* Mobile Invite Button */}
                   <button
                     type="button"
+                      onClick={() => setIsInviteModalOpen(true)}
+
                     aria-label="Invite Member"
                     className="fixed bottom-20 right-4 z-20 flex size-11 items-center justify-center rounded-xl bg-primary text-white shadow-lg transition hover:bg-primary-container md:hidden"
                   >
@@ -407,6 +401,11 @@ const fetchMembers = async () => {
           </div>
         </main>
       </div>
+      <InviteMemberModal
+        isOpen={isInviteModalOpen}
+        projectId={projectId}
+        onClose={() => setIsInviteModalOpen(false)}
+      />
     </div>
   );
 }

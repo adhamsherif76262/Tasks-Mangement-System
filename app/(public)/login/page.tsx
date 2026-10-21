@@ -61,10 +61,41 @@ export default function Loginpage() {
         return;
       }
 
-      localStorage.removeItem("auth_session");
-      sessionStorage.removeItem("auth_session");
-      router.push("/projects");
-      router.refresh(); 
+      // localStorage.removeItem("auth_session");
+      // sessionStorage.removeItem("auth_session");
+      // router.push("/projects");
+      // router.refresh(); 
+
+      const redirectParam = new URLSearchParams(
+        window.location.search
+      ).get("redirect");
+
+      let destination = "/projects";
+
+      if (
+        redirectParam &&
+        redirectParam.startsWith("/") &&
+        !redirectParam.startsWith("//") &&
+        !redirectParam.includes("\\")
+      ) {
+        try {
+          const redirectUrl = new URL(
+            redirectParam,
+            window.location.origin
+          );
+        
+          if (redirectUrl.origin === window.location.origin) {
+            destination =
+              redirectUrl.pathname + redirectUrl.search + redirectUrl.hash;
+          }
+        } catch {
+          destination = "/projects";
+        }
+      }
+
+      router.replace(destination);
+      router.refresh();
+
     } catch (error) {
       console.error("Login client processing error:", error);
       setLoginError("Something went wrong while logging in. Please try again.");
