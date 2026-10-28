@@ -9,14 +9,6 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-type ProjectLink = "Epics" | "Tasks" | "Members" | "Details";
-
-interface ProjectNavigationLink {
-  label: ProjectLink;
-  section: "epics" | "tasks" | "members" | "edit";
-  href: string;
-}
-
 function TasklyIcon() {
   return (
     <svg
@@ -401,9 +393,6 @@ function ProjectLinkIcon({
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-const API_KEY = process.env.NEXT_PUBLIC_SECRET_KEYS;
-
 export default function AppSidebar({
   collapsed,
   onToggle,
@@ -453,41 +442,6 @@ const isInsideProject = Boolean(activeProjectId);
       },
     ]
   : [];
-
-  // const handleLogout = async () => {
-  //   if (isLoggingOut) return;
-
-  //   setIsLoggingOut(true);
-
-  //   try {
-  //     const storedSession = await getValidSession();
-
-  //     if (storedSession && BASE_URL && API_KEY) {
-  //       try {
-  //         if (storedSession.access_token) {
-  //           await fetch(`${BASE_URL}/auth/v1/logout`, {
-  //             method: "POST",
-  //             headers: {
-  //               apikey: API_KEY,
-  //               Authorization: `Bearer ${storedSession.access_token}`,
-  //               "Content-Type": "application/json",
-  //             },
-  //           });
-  //         }
-  //       } catch (error) {
-  //         console.error("Logout API error:", error);
-  //       }
-  //     }
-  //   } finally {
-
-  //     localStorage.removeItem("auth_session");
-  //     localStorage.removeItem("auth_session_expires");
-  //     sessionStorage.removeItem("auth_session");
-
-  //     router.replace("/login");
-  //   }
-  // };
-
 
     const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -668,9 +622,9 @@ const isInsideProject = Boolean(activeProjectId);
             )}
           </button>
 
-          <button
+          {/* <button
             type="button"
-            onClick={()=> router.push("/statistics")}
+            onClick={()=> router.push("/my-statistics")}
             className={`
               flex
               h-9
@@ -694,182 +648,52 @@ const isInsideProject = Boolean(activeProjectId);
                 My Statistics
               </span>
             )}
-          </button>
+          </button> */}
+
+          
+<button
+  type="button"
+  onClick={() => {
+    router.push("/my-statistics");
+
+    if (isMobile) {
+      onMobileClose?.();
+    }
+  }}
+  aria-current={pathname === "/my-statistics" ? "page" : undefined}
+  className={`
+    flex
+    h-9
+    w-full
+    items-center
+    rounded-sm
+    transition-colors
+    ${
+      pathname === "/my-statistics"
+        ? "bg-white text-primary"
+        : "text-slate-neutral-dark hover:bg-white"
+    }
+    ${
+      collapsed && !isMobile
+        ? "justify-center"
+        : "gap-3 px-2"
+    }
+  `}
+>
+  <StatisticsIcon />
+
+  {(isMobile || !collapsed) && (
+    <span className="text-body-md">
+      My Statistics
+    </span>
+  )}
+</button>
+
         </nav>
 
         {/* Divider */}
 
         <div className="my-4 h-px bg-[#DEE2EF]" />
-
-        {/* Active Project */}
-
-        {/* {collapsed && !isMobile ? (
-          <div
-            ref={popupRef}
-            className="relative flex justify-center"
-          >
-            <button
-              type="button"
-              aria-label="Open active project links"
-              aria-expanded={projectPopupOpen}
-              onClick={() =>
-                setProjectPopupOpen(
-                  (previous) => !previous,
-                )
-              }
-              className={`
-                flex
-                h-11
-                w-11
-                items-center
-                justify-center
-                rounded-sm
-                transition-colors
-                ${
-                  projectPopupOpen
-                    ? "bg-white text-primary"
-                    : "text-slate-neutral-dark hover:bg-white"
-                }
-              `}
-            >
-              <FolderIcon size={21} />
-            </button>
-
-            {projectPopupOpen && (
-              <div
-                className="
-                  absolute
-                  left-full
-                  top-0
-                  z-100
-                  w-61.25
-                  rounded-r-lg
-                  rounded-bl-lg
-                  bg-[#D5E2FF]
-                  py-2
-                  shadow-[0px_8px_24px_rgba(4,27,60,0.08)]
-                "
-              >
-                {projectLinks.map((link) => (
-                  <button
-                    key={link}
-                    type="button"
-                    onClick={() =>
-                      setProjectPopupOpen(false)
-                    }
-                    className="
-                      flex
-                      h-11
-                      w-full
-                      items-center
-                      gap-3
-                      px-4
-                      text-left
-                      text-slate-neutral-dark
-                      hover:bg-[#C9D9FC]
-                    "
-                  >
-                    <ProjectLinkIcon link={link} />
-
-                    <span className="text-body-md">
-                      {link}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-lg bg-white">
-            <button
-              type="button"
-              onClick={() =>
-                setProjectOpen(
-                  (previous) => !previous,
-                )
-              }
-              aria-expanded={projectOpen}
-              className="
-                flex
-                h-11
-                w-full
-                items-center
-                gap-3
-                bg-[#D5E2FF]
-                px-3
-                text-left
-                text-slate-neutral-dark
-              "
-            >
-              <FolderIcon size={20} />
-
-              <span
-                className="
-                  min-w-0
-                  flex-1
-                  truncate
-                  text-body-md
-                  font-semibold
-                "
-              >
-                Active Project Name
-              </span>
-
-              <span className="shrink-0 text-default-placeholder">
-                <ChevronIcon
-                  direction={
-                    projectOpen ? "up" : "down"
-                  }
-                />
-              </span>
-            </button>
-
-            {projectOpen && (
-              <div className="py-1">
-                {projectLinks.map((link) => {
-                  const isActive =
-                    link === "Epics";
-
-                  return (
-                    <button
-                      key={link}
-                      type="button"
-                      onClick={() => {
-                        if (isMobile) {
-                          onMobileClose?.();
-                        }
-                      }}
-                      className={`
-                        mx-1
-                        flex
-                        h-10
-                        w-[calc(100%-8px)]
-                        items-center
-                        gap-3
-                        rounded-full
-                        px-3
-                        text-left
-                        transition-colors
-                        ${
-                          isActive
-                            ? "bg-[#F0F3FF] text-slate-neutral-dark"
-                            : "text-slate-neutral-dark hover:bg-[#F5F6FC]"
-                        }
-                      `}
-                    >
-                      <ProjectLinkIcon link={link} />
-
-                      <span className="text-body-md">
-                        {link}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )} */}
-
 
 {/* Active Project */}
 
