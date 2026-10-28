@@ -603,9 +603,14 @@ const isInsideProject = Boolean(activeProjectId);
               w-full
               items-center
               rounded-sm
-              bg-white
+            
               text-primary
               transition-colors
+              ${
+                pathname === "/projects"
+                  ? "bg-white text-primary"
+                  : "text-slate-neutral-dark hover:bg-white bg-none"
+              }
               ${
                 collapsed && !isMobile
                   ? "justify-center"

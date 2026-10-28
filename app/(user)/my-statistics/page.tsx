@@ -275,8 +275,8 @@ function DonutChart({ totals }: { totals: Partial<Record<TaskStatus, number>> })
           className="absolute inset-0 rounded-full"
           style={{
             background,
-            maskImage: "radial-gradient(circle, transparent 0 59%, black 60%)",
-            WebkitMaskImage: "radial-gradient(circle, transparent 0 59%, black 60%)",
+            maskImage: "radial-gradient(circle, transparent 0 45%, black 46%)",
+            WebkitMaskImage: "radial-gradient(circle, transparent 0 45%, black 46%)",
           }}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -377,44 +377,104 @@ export default function Statistics() {
   const rangeLength = inclusiveDays(draftStart, draftEnd);
   const rangeInvalid = rangeLength < 1 || rangeLength > 7;
 
-  const fetchProjects = useCallback(async (signal?: AbortSignal) => {
-    setProjectsLoading(true);
-    setProjectsError("");
+  // const fetchProjects = useCallback(async (signal?: AbortSignal) => {
+  //   setProjectsLoading(true);
+  //   setProjectsError("");
 
-    try {
-      const response = await fetch("/api/projects?limit=100&offset=0", {
-        method: "GET",
-        cache: "no-store",
-        signal,
-      });
+  //   try {
+  //     const response = await fetch("/api/projects?limit=100&offset=0", {
+  //       method: "GET",
+  //       cache: "no-store",
+  //       signal,
+  //     });
 
-      const result = await response.json().catch(() => null);
+  //     const result = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        throw new Error(readError(result, "Failed to load projects."));
-      }
+  //     if (!response.ok) {
+  //       throw new Error(readError(result, "Failed to load projects."));
+  //     }
 
-      const rows = Array.isArray(result)
-        ? result
-        : Array.isArray(result?.data)
-          ? result.data
-          : [];
+  //     const rows = Array.isArray(result)
+  //       ? result
+  //       : Array.isArray(result?.data)
+  //         ? result.data
+  //         : [];
 
-      setProjects(
-        rows
-          .map((item: Record<string, unknown>) => ({
-            id: String(item.id ?? item.project_id ?? ""),
-            name: String(item.name ?? item.project_name ?? "Untitled project"),
-          }))
-          .filter((item: ProjectOption) => Boolean(item.id)),
-      );
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") return;
-      setProjectsError(error instanceof Error ? error.message : "Failed to load projects.");
-    } finally {
-      if (!signal?.aborted) setProjectsLoading(false);
+  //     setProjects(
+  //       rows
+  //         .map((item: Record<string, unknown>) => ({
+  //           id: String(item.id ?? item.project_id ?? ""),
+  //           name: String(item.name ?? item.project_name ?? "Untitled project"),
+  //         }))
+  //         .filter((item: ProjectOption) => Boolean(item.id)),
+  //     );
+  //   } catch (error) {
+  //     if (error instanceof Error && error.name === "AbortError") return;
+  //     setProjectsError(error instanceof Error ? error.message : "Failed to load projects.");
+  //   } finally {
+  //     if (!signal?.aborted) setProjectsLoading(false);
+  //   }
+  // }, []);
+
+  
+const fetchProjects = useCallback(async (signal?: AbortSignal) => {
+  setProjectsLoading(true);
+  setProjectsError("");
+
+  try {
+    const response = await fetch("/api/projects?limit=100&offset=0", {
+      method: "GET",
+      cache: "no-store",
+      signal,
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(readError(result, "Failed to load projects."));
     }
-  }, []);
+
+    const rows = Array.isArray(result)
+      ? result
+      : Array.isArray(result?.data)
+        ? result.data
+        : [];
+
+    const normalizedProjects: ProjectOption[] = rows
+      .map((item: Record<string, unknown>) => ({
+        id: String(item.id ?? item.project_id ?? "").trim(),
+        name: String(
+          item.name ?? item.project_name ?? "Untitled project",
+        ).trim() || "Untitled project",
+      }))
+      .filter((item: ProjectOption) => Boolean(item.id));
+
+    // Keep one option per project UUID, even if the API returns duplicates.
+    const uniqueProjects = Array.from(
+      new Map(
+        normalizedProjects.map((project) => [project.id, project]),
+      ).values(),
+    );
+
+    console.table(
+  normalizedProjects.map(({ id, name }) => ({ id, name })),
+);
+
+    setProjects(uniqueProjects);
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") return;
+
+    setProjectsError(
+      error instanceof Error
+        ? error.message
+        : "Failed to load projects.",
+    );
+  } finally {
+    if (!signal?.aborted) {
+      setProjectsLoading(false);
+    }
+  }
+}, []);
 
   useEffect(() => {
     const controller = new AbortController();
